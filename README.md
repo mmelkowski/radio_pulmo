@@ -1,7 +1,5 @@
-Project Name
+Analyse de radiographies pulmonaires Covid-19
 ==============================
-
-This repo is a Starting Pack for DS projects. You can rearrange the structure to make it fits your project.
 
 Project Organization
 ------------
