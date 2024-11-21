@@ -1,6 +1,6 @@
 model_name,number_of_layer,number_of_parameters_trainable,number_of_parameters_untrainable,accuracy,number_of_epoch_used,training_time,covid_recall,lung_oppacity_recall,normal_recall,viral_pneumonia_recall,train_size,valid_size,test_size
 VGG19,19,20026436,0,0.94,20,45,0.98,0.90,0.96,0.94,16932,2116,2117
 EfficientNetB0,237,4339072,44583,0.95,20,7,0.98,0.91,0.96,0.99,16932,2116,2117
-EfficientNetB4,381,18012236,128791,0.96,20,45,0.99,0.92,0.97,0.99,16932,2116,2117
+EfficientNetB4,381,18012236,128791,0.96,20,30,0.99,0.92,0.97,0.99,16932,2116,2117
 DenseNet169,169,12491140,158400,0.95,20,45,0.98,0.92,0.95,0.99,16932,2116,2117
 Resnet101,347,42561028,105344,0.94,20,45,1,0.87,0.97,0.96,16932,2116,2117
