@@ -15,7 +15,8 @@ def download_dataset(kaggle_dataset_path, covid_dataset_name, path_to_data):
     shutil.move(source, path_to_data)
 
 
-def process_data(folder_to_process, data_folder_path, output_path, target_size=(256, 256)):
+def process_data(folder_to_process, data_folder_path, output_path, 
+                 target_size=(256, 256), smaller_set=False, small_size=20):
     for img_type in  folder_to_process:
         print(f"Processing folder: {img_type}")
 
@@ -25,6 +26,7 @@ def process_data(folder_to_process, data_folder_path, output_path, target_size=(
         output_folder_path = output_path / img_type
         output_folder_path.mkdir(parents=True, exist_ok=True)
 
+        nb_image_done = 0
         for image_name, mask_name in zip(os.listdir(img_folder_path),
                                          os.listdir(mask_folder_path)):
 
@@ -46,7 +48,11 @@ def process_data(folder_to_process, data_folder_path, output_path, target_size=(
 
             # Write masked image
             output_image_name = image_name + '_masked.png'
-            cv2.imwrite(output_folder_path / output_image_name, res)
+            cv2.imwrite(output_folder_path / "images" / output_image_name, res)
+
+            nb_image_done += 1
+            if smaller_set and nb_image_done >= small_size:
+                break
 
         print(f"Processing folder: {img_type} done.")
 
