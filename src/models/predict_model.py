@@ -68,7 +68,6 @@ def save_confusion_matrix(test_gen, y_pred, savepath, normalize=False):
     # Confusion matrix
     cm = confusion_matrix(test_gen.classes, y_pred)
     plot_confusion_matrix(savepath, cm, classes, normalize=normalize)
-    print(f"Confusion matrix saved at: {savepath}")
 
 
 @click.command(context_settings={"show_default": True})

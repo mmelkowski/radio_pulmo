@@ -316,4 +316,6 @@ def plot_gradcam(savepath, img_path, model, last_conv_layer_name, pred_index=Non
     plt.imshow(overlay)
     plt.axis("off")
 
-    plt.savefig(pathlib.Path(savepath) / "Grad-CAM.png")
+    save_location = pathlib.Path(savepath) / "Grad-CAM.png"
+    plt.savefig(save_location)
+    print(f"Grad-CAM saved as: {save_location}.")

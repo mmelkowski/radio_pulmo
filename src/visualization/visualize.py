@@ -89,7 +89,6 @@ def visualize(
 
         efficientnet = model.get_layer("efficientnetb4")
         plot_gradcam(save_location, img_path, efficientnet, last_conv_layer_name)
-        print(f"Grad-CAM saved as: {save_location}.")
 
 
 if __name__ == "__main__":
