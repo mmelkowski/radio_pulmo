@@ -13,5 +13,5 @@ def load_model(model_save_path):
     Returns:
         The loaded Keras model.
     """
-    #TODO Add support for model download from google drive
+    # TODO Add support for model download from google drive
     return keras.models.load_model(model_save_path)
