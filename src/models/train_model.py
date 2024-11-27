@@ -24,14 +24,32 @@ from plot_functions import plot_training
 import warnings
 warnings.filterwarnings("ignore")
 
-print ('modules loaded')
-
 
 def check_for_GPU():
     return bool(tf.config.list_physical_devices('GPU'))
 
 
 class MyCallback(keras.callbacks.Callback):
+    """Custom callback for monitoring training progress and early stopping.
+
+    This callback extends the Keras `Callback` class to provide custom functionality
+    for monitoring training metrics and implementing early stopping strategies.
+
+    "ask_epoch" parameter is only used in the jupyter notebook for manual stop.
+
+    Args:
+        model: The Keras model being trained.
+        patience (int): The number of epochs with no improvement in the validation loss
+            before reducing the learning rate.
+        stop_patience (int): The number of epochs with no improvement in the validation loss
+            after reducing the learning rate before stopping training.
+        threshold (float): The minimum improvement required in the validation loss to avoid
+            early stopping.
+        factor (float): The factor by which to reduce the learning rate.
+        batches (int): The number of batches per epoch.
+        epochs (int): The total number of epochs.
+        ask_epoch (int): The epoch at which to ask the user if they want to continue training.
+    """
     def __init__(self, model, patience, stop_patience, threshold, factor, batches, epochs, ask_epoch):
         super(MyCallback, self).__init__()
         #self.model = model
@@ -211,6 +229,20 @@ def model_structure(img_size, channels, train_gen):
 
 
 def model_choice(model_name, class_count, img_shape, display_summary=False):
+    """Loads a specified model architecture for image classification.
+
+    This function creates a Keras model based on the provided `model_name`. 
+    It configures the model with the given `class_count` and `img_shape`.
+
+    Args:
+        model_name (str): The name of the model architecture to load.
+        class_count (int): The number of classes for the classification task.
+        img_shape (tuple): The shape of the input images.
+        display_summary (bool): Whether to print a summary of the model architecture. Defaults to False.
+
+    Returns:
+        A Keras model instance.
+    """
     match model_name:
         case "VGG19":
             base_model = tf.keras.applications.vgg19.VGG19(include_top= False, weights= "imagenet", input_shape= img_shape, pooling= 'max')
@@ -251,6 +283,21 @@ def model_choice(model_name, class_count, img_shape, display_summary=False):
 
 
 def set_callback_parameters(train_gen, model, batch_size, epochs):
+    """Sets parameters for the custom callback and creates a callback instance.
+
+    This function configures parameters for the `MyCallback` class, which is used to
+    monitor training progress and implement early stopping strategies. 
+    It then creates an instance of the `MyCallback` class with the specified parameters.
+
+    Args:
+        train_gen: The training data generator.
+        model: The Keras model being trained.
+        batch_size: The batch size for training.
+        epochs: The total number of epochs.
+
+    Returns:
+        A list containing the `MyCallback` instance.
+    """
     #batch_size = 16   # set batch size for training
     #epochs = 100   # number of all epochs in training
     patience = 3   #number of epochs to wait to adjust lr if monitored value does not improve
@@ -267,7 +314,20 @@ def set_callback_parameters(train_gen, model, batch_size, epochs):
 
 
 def launch_training(model, train_gen, epochs, callbacks, valid_gen):
-    #TODO add print of training argument 
+    """Launches the training process for a given model using a training generator,
+    epochs, callbacks, and an optional validation generator.
+
+    Args:
+        model (keras.Model): The Keras model to be trained.
+        train_gen (Sequence): A data generator object that yields training data in batches.
+        epochs (int): The number of epochs to train the model for.
+        callbacks (List[keras.callbacks.Callback]): A list of Keras callbacks to be applied during training.
+        valid_gen (Sequence): A data generator object that yields validation data in batches.
+
+    Returns:
+        history (History): A Keras History object containing training and validation logs.
+    """
+    #TODO add print of training argument
     history = model.fit(x= train_gen, 
                         epochs= epochs, 
                         verbose= 0, 
@@ -288,6 +348,21 @@ def get_acc(model, test_df, test_gen):
 
 
 def save_model(model_name, save_path, model, acc, save_weight=False):
+    """Saves a trained Keras model and optionally its weights.
+
+    This function saves a trained Keras model to the specified location. The
+    filename incorporates the model name and the achieved accuracy for easy
+    identification. 
+    Optionally, the function can also save the model's weights to a separate file.
+
+    Args:
+        model_name: The name of the model to be saved.
+        save_path: The path to the directory where the model will be saved.
+        model: The Keras model instance to be saved.
+        acc: The achieved accuracy of the model (float).
+        save_weight: Whether to save the model's weights in a separate file.
+            Defaults to False.
+    """
     # Save model
     save_id = str(f'{model_name}-{"%.2f" %round(acc, 2)}.keras')
     model_save_loc = pathlib.Path(save_path) / save_id 
@@ -302,14 +377,9 @@ def save_model(model_name, save_path, model, acc, save_weight=False):
         print(f'weights were saved as {weights_save_loc}')
 
 
-@click.command()
-@click.option("--path_to_data", default="../../data/processed", 
-              help="Abs or relative path to the data folder where raw and process folder are expected.")
-@click.option("--covid_dataset_processed_name", default="COVID-19_masked_features", 
-              help="Dataset name afer processing.")
-@click.option("--folder_to_process", multiple=True, 
-              default=["Lung_Opacity","COVID","Normal","Viral Pneumonia"], 
-              help="List of image type to process.")
+@click.command(context_settings={'show_default': True})
+@click.option("--path_to_data", default="../../data/processed", help="Abs or relative path to the data folder where raw and process folder are expected.")
+@click.option("--covid_dataset_processed_name", default="COVID-19_masked_features", help="Dataset name afer processing.")
 @click.option('--model_name', 
               type=click.Choice(['VGG19',
                                  'EfficientNetB0',
@@ -320,13 +390,11 @@ def save_model(model_name, save_path, model, acc, save_weight=False):
               help='Choose the model architecture.')
 @click.option("--img_width", default=224, help="Input image width for the model")
 @click.option("--img_height", default=224, help="Input image height for the model")
-@click.option("--save_path", default="../../models",
-              help="Abs or relative path to the models storage folder.")
+@click.option("--save_path", default="../../models", help="Abs or relative path to the models storage folder.")
 @click.option("--batch_size", default=16, help="Size of the batch.")
 @click.option("--epochs", default=2, help="Number of epoch to train on.")
 def train_model(path_to_data,
                 covid_dataset_processed_name,
-                folder_to_process,
                 model_name,
                 img_width,
                 img_height,
@@ -334,6 +402,20 @@ def train_model(path_to_data,
                 batch_size,
                 epochs
                 ):
+    """Main function to train the model on the kaggle covid19-radiography-database.
+
+    This scripts is meant to be executed in its folder with the command "python3 train_model.py".
+
+    The model chose in this project is EfficientNetB4, but other model are availlable and compatible with this code: 
+    ['VGG19', 'EfficientNetB0', 'EfficientNetB4', 'DenseNet169', 'ResNet101']
+
+    The model after training will be saved with its metrics in the "data/model" folder (save_path argument).
+
+    The training of EfficientNetB4 on the dataset can take up to 45 minutes using a "GeForce RTX4070 SUPER" GPU.
+
+    The training code was taken and adapted from Ahmed Hafez's work 
+    "https://www.kaggle.com/code/ahmedtronic/covid-19-radiology-vgg19-f1-score-95".
+    """
     #config
     data_dir = pathlib.Path(path_to_data) / covid_dataset_processed_name
 

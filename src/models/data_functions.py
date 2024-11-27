@@ -11,8 +11,19 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 
 def define_paths(data_dir):
-    """
-    Generate data paths with labels
+    """Generates file paths and corresponding labels from a directory structure.
+
+    This function recursively traverses the specified directory, identifying image files and
+    assigning labels based on their folder structure. It filters out unwanted files and folders,
+    such as masks or hidden files.
+
+    Args:
+        data_dir: The path to the root directory containing the image data.
+
+    Returns:
+        A tuple of two lists:
+            - A list of file paths to the images.
+            - A list of corresponding class labels.
     """
     filepaths = []
     labels = []
@@ -49,8 +60,18 @@ def define_paths(data_dir):
 
 
 def define_df(files, classes):
-    """
-    Concatenate data paths with labels into one dataframe (to later be fitted into the model)
+    """Creates a DataFrame combining file paths and class labels.
+
+    This function takes lists of file paths and corresponding class labels, and creates a
+    Pandas DataFrame with two columns: 'filepaths' and 'labels'. This DataFrame is commonly
+    used as input for image data generators.
+
+    Args:
+        files: A list of file paths.
+        classes: A list of class labels corresponding to the file paths.
+
+    Returns:
+        A Pandas DataFrame with two columns: 'filepaths' and 'labels'.
     """
     Fseries = pd.Series(files, name= 'filepaths')
     Lseries = pd.Series(classes, name='labels')
@@ -58,8 +79,20 @@ def define_df(files, classes):
 
 
 def split_data(data_dir, seed=42):
-    """
-    Split dataframe to train, valid, and test
+    """Splits a dataset into training, validation, and test sets.
+
+    This function splits a dataset into training, validation, and test sets, ensuring a stratified
+    split based on class labels.
+
+    Args:
+        data_dir: The path to the directory containing the dataset.
+        seed: The random seed for the splitting process.
+
+    Returns:
+        A tuple of three DataFrames:
+            - The training DataFrame
+            - The validation DataFrame
+            - The test DataFrame
     """
     # train dataframe
     files, classes = define_paths(data_dir)
@@ -75,12 +108,24 @@ def split_data(data_dir, seed=42):
 
 
 def create_gens (train_df, valid_df, test_df, batch_size):
-    """
-    This function takes train, validation, and test dataframe and fit them into image data generator, because model takes data from image data generator.
-    Image data generator converts images into tensors. 
-    """
+    """Creates image data generators for training, validation, and testing.
 
+    This function processes the provided DataFrames to create ImageDataGenerator instances
+    for training, validation, and testing. It applies pre defined data augmentation techniques 
+    to the training and validation sets to improve model generalization.
 
+    Args:
+        train_df: A DataFrame containing training data, including image paths and labels.
+        valid_df: A DataFrame containing validation data, including image paths and labels.
+        test_df: A DataFrame containing test data, including image paths and labels.
+        batch_size: The batch size for training and validation.
+
+    Returns:
+        A tuple of three ImageDataGenerator instances:
+            - The training data generator
+            - The validation data generator
+            - The test data generator
+    """
     # define model parameters
     img_size = (224, 224)
     channels = 3 # either BGR or Grayscale
@@ -123,6 +168,28 @@ def create_gens (train_df, valid_df, test_df, batch_size):
 
 
 def loading_dataset(data_dir, batch_size, seed=42):
+    """Loads and preprocesses a dataset for training and validation.
+
+    This function loads a dataset from the specified directory, splits it into training,
+    validation, and test sets, and creates data generators for training and validation.
+
+    Args:
+        data_dir: The path to the directory containing the dataset.
+        batch_size: The batch size for training and validation.
+        seed: The random seed for data splitting and shuffling.
+
+    Returns:
+        A tuple containing:
+            - The training DataFrame
+            - The validation DataFrame
+            - The test DataFrame
+            - The training data generator
+            - The validation data generator
+            - The test data generator
+
+    Raises:
+        TypeError: If the input data directory is invalid.
+    """
     #data_dir = '/home/tylio/code/Project_radio_pulmo/code/radio_pulmo/data/processed/covid_19_masked_copy'
     try:
 

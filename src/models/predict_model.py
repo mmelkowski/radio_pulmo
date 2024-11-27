@@ -1,12 +1,10 @@
 # import system libs
-import os
 import pathlib
 
 # log and command
 import click
 
 # import data handling tools
-import cv2
 import numpy as np
 import pandas as pd
 from sklearn.metrics import confusion_matrix, classification_report
@@ -17,15 +15,11 @@ from tensorflow import keras
 # custom functions
 from data_functions import define_paths, define_df, split_data, create_gens, loading_dataset
 from plot_functions import plot_confusion_matrix
+from model_functions import load_model
 
 # Ignore Warnings
 import warnings
 warnings.filterwarnings("ignore")
-
-
-def load_model(model_save_path):
-    #TODO Add support for model download from google drive
-    return keras.models.load_model(model_save_path)
 
 
 def evaluate_model(test_df, model, train_gen, valid_gen, test_gen):
@@ -60,9 +54,10 @@ def save_confusion_matrix(test_gen, y_pred, savepath, normalize=False):
     # Confusion matrix
     cm = confusion_matrix(test_gen.classes, y_pred)
     plot_confusion_matrix(savepath, cm, classes, normalize= normalize)
+    print(f'Confusion matrix saved at: {savepath}')
 
 
-@click.command()
+@click.command(context_settings={'show_default': True})
 @click.option("--model_name", help="Name of the model file to load.", required=True)
 @click.option("--model_path", default="../../models",
               help="Abs or relative path to the models storage folder.")
@@ -72,9 +67,6 @@ def save_confusion_matrix(test_gen, y_pred, savepath, normalize=False):
               help="Processed dataset name.")
 @click.option("--save_location", default="../../models",
               help="Abs or relative path to figure save location.")
-@click.option("--folder_to_process", multiple=True,
-              default=["Lung_Opacity","COVID","Normal","Viral Pneumonia"],
-              help="List of image type to process.")
 @click.option("--batch_size", default=16, help="Size of the batch.")
 @click.option('--cm_normalize',
               type=click.Choice(["True", "False"]),
@@ -86,10 +78,18 @@ def predict_model(
     path_to_data,
     covid_dataset_processed_name,
     save_location,
-    folder_to_process,
     batch_size,
     cm_normalize
     ):
+    """Main function to evaluate the trained model.
+
+    This scripts is meant to be executed in its folder with the command "python3 train_model.py --model_name YourModelName.keras".
+
+    The model's classification report and confusion matrix after evaluation will be saved in the "data/model" folder (save_location argument).
+
+    The predict code was taken and adapted from Ahmed Hafez's work:
+    "https://www.kaggle.com/code/ahmedtronic/covid-19-radiology-vgg19-f1-score-95".
+    """
     # config
     model_save_path = pathlib.Path(model_path) / model_name
     data_dir = pathlib.Path(path_to_data) / covid_dataset_processed_name
