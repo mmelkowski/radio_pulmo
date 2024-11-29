@@ -27,6 +27,26 @@ warnings.filterwarnings("ignore")
 
 
 def evaluate_model(test_df, model, train_gen, valid_gen, test_gen):
+    """Evaluates a model on training, validation, and test sets.
+
+    This function evaluates a given Keras model on training, validation, and test sets.
+    It calculates the loss and metrics for each set and returns the results.
+
+    Args:
+        test_df: A DataFrame containing information about the test set.
+        model: The Keras model to be evaluated.
+        train_gen: A data generator for the training set.
+        valid_gen: A data generator for the validation set.
+        test_gen: A data generator for the test set.
+
+    Returns:
+    A tuple containing:
+        - The evaluation results for the training set.
+        - The evaluation results for the validation set.
+        - The evaluation results for the test set.
+
+    Each result is a tuple containing the loss and metrics.
+    """
     ts_length = len(test_df)
     test_batch_size = test_batch_size = max(
         sorted(
@@ -46,12 +66,40 @@ def evaluate_model(test_df, model, train_gen, valid_gen, test_gen):
 
 
 def get_predictions(model, test_gen):
+    """Generates predictions for a given test set.
+
+    This function makes predictions on a test set using a specified model and data generator.
+    It returns both the raw prediction probabilities and the predicted class labels.
+
+    Args:
+        model: The trained model to use for predictions.
+        test_gen: A data generator for the test set.
+
+    Returns:
+    A tuple containing:
+        - The predicted probabilities for each class, as a NumPy array.
+        - The predicted class labels, as a NumPy array.
+    """
     preds = model.predict(test_gen)
     y_pred = np.argmax(preds, axis=1)
     return preds, y_pred
 
 
 def save_classification_report(test_gen, y_pred, output_folder_path, classes):
+    """Saves a classification report to a CSV file.
+
+    This function generates a classification report using the true labels from the test generator
+    and the predicted labels. The report is then saved as a CSV file.
+
+    Args:
+        test_gen: The test data generator.
+        y_pred: The predicted labels for the test set.
+        output_folder_path: The path to the output folder where the report will be saved.
+        classes: A list of class names.
+
+    Returns:
+        None
+    """
     report = classification_report(
         test_gen.classes, y_pred, target_names=classes, output_dict=True
     )
@@ -62,6 +110,20 @@ def save_classification_report(test_gen, y_pred, output_folder_path, classes):
 
 
 def save_confusion_matrix(test_gen, y_pred, savepath, normalize=False):
+    """Saves a confusion matrix to a file.
+
+    This function generates a confusion matrix from the true labels in the test generator
+    and the predicted labels. It then visualizes the confusion matrix and saves it to a file.
+
+    Args:
+        test_gen: The test data generator.
+        y_pred: The predicted labels for the test set.
+        savepath: The path to the directory where the confusion matrix plot will be saved.
+        normalize: Whether to normalize the confusion matrix. Defaults to False.
+
+    Returns:
+        None
+    """
     g_dict = test_gen.class_indices
     classes = list(g_dict.keys())
 
