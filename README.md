@@ -26,13 +26,17 @@ A key objective will be to minimize the occurrence of false negatives, i.e., ins
 
 ## Project Conclusion
 
-The EfficientNetB4 model was chosen for its performance. On data including only the lung area 92% accuracy was obtained.
+The EfficientNetB4 model was chosen for its performance. On data including only the lung area, 92% accuracy was obtained.
 
 ## Project Usage
 
 The project was developed using Jupyter Notebook for exploratory data analysis and to facilitate experimentation with various frameworks and models.
 
 The src folder is structured as a Python module, although the main scripts are intended to be executed directly via the command line interface (CLI).
+
+## Building the environment
+
+The file `requirements.txt` will contain the necessary modules for this project. It can be used to build your environment with your prefered method ([conda](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html), [venv](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/), ...).
 
 ## Using the Scripts
 
@@ -93,8 +97,44 @@ For each script more information on their arguments and possible value can be ac
 python3 script.py --help
 ```
 
-## Project Organization
+### Optionnal segmentation for supplementtary data
 
+As the model use masked image we provide two script to transform automatically any X-ray into a masked image.
+
+#### 1. Training the segmentation model
+
+The script `seg_train_model.py` can be use to train a U-Net model on the previous Kaggle dataset. 
+This model will be used to predict the lung region on any given X-ray.
+
+```bash
+cd src/model/
+python3 seg_train_model.py
+```
+
+#### 2. Using the model to produce the masked image
+
+Once the model train it can be used with the following command to convert an image or a folder containing any number of X-ray.
+
+Command for converting a file
+
+```bash
+cd src/model/
+python3 seg_predict_model.py --model_name <model_name>.keras --filepath <image_path>
+```
+
+or for a folder:
+
+```bash
+cd src/model/
+python3 seg_predict_model.py --model_name <model_name>.keras --folderpath <folder_path>
+```
+
+By default the command produced a mask image the same size of the original picture.
+It can be changed using the arguments: `--output_height` and `--output_width`. As the script `build_features.py` use 256*256 pixels images it is recommanded to use the argument if you want to use to predict the image afterward.
+
+## Project Organization
+   
+    .
     ├── LICENSE
     ├── README.md          <- The top-level README for developers using this project.
     ├── data
@@ -122,7 +162,9 @@ python3 script.py --help
         ├── models         <- Scripts to train models and then use trained models
         │   │                 to make predictions
         │   ├── predict_model.py
-        │   └── train_model.py
+        │   ├── train_model.py
+        │   ├── seg_predict_model.py
+        │   └── seg_train_model.py
         │
         └── visualization  <- Scripts to create exploratory and results
             │                 oriented visualizations
