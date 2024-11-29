@@ -134,6 +134,11 @@ def build_features(
     path_to_raw = path_to_data / "raw"
     path_to_process = path_to_data / "processed"
 
+    if not os.path.exists(path_to_raw):
+        os.makedirs(path_to_raw)
+    if not os.path.exists(path_to_process):
+        os.makedirs(path_to_process)
+
     covid_dataset_raw_path = path_to_raw / covid_dataset_name
     covid_dataset_processed_path = path_to_process / covid_dataset_processed_name
 
