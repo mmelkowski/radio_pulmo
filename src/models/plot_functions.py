@@ -23,7 +23,6 @@ def show_images(gen):
         None: This function does not explicitly return a value, but it
             saves a grid of sample images with their corresponding class names.
     """
-
     # return classes , images to be displayed
     g_dict = gen.class_indices  # defines dictionary {'class': index}
     classes = list(

@@ -253,9 +253,11 @@ def seg_predict_model(
 
     # segmentation
     ## load model
+    print("[INFO] Model Loading")
     model = load_model(model_save_path)
 
     if filepath:
+        print("[INFO] Processing image...")
         filepath = pathlib.Path(filepath)
         img_filename = filepath.name
         process_image(
@@ -268,6 +270,7 @@ def seg_predict_model(
         print(f"Masked Image and mask saved at: {masking_results_folder}")
 
     elif folderpath:
+        print("[INFO] Processing folder...")
         folderpath = pathlib.Path(folderpath)
         # process images in folder
         for img_filename in os.listdir(folderpath):
@@ -283,6 +286,8 @@ def seg_predict_model(
 
     else:
         raise Exception("[ERROR] No options --filepath or --folderpath found.")
+    
+    print("[INFO] Processing Done.")
 
 
 if __name__ == "__main__":

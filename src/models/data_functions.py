@@ -235,7 +235,6 @@ def loading_dataset(data_dir, batch_size, seed=42):
     Raises:
         TypeError: If the input data directory is invalid.
     """
-    # data_dir = '/home/tylio/code/Project_radio_pulmo/code/radio_pulmo/data/processed/covid_19_masked_copy'
     try:
         # Get splitted data
         train_df, valid_df, test_df = split_data(data_dir)

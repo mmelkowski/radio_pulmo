@@ -566,11 +566,13 @@ def train_model(
     data_dir = pathlib.Path(path_to_data) / covid_dataset_processed_name
 
     # data loading
+    print("[INFO] Data loading")
     train_df, valid_df, test_df, train_gen, valid_gen, test_gen = loading_dataset(
         data_dir, batch_size
     )
 
     # training
+    print("[INFO] Model Definition")
     img_size = (img_width, img_height)
     channels = 3
     img_shape, class_count = model_structure(img_size, channels, train_gen)
@@ -579,9 +581,12 @@ def train_model(
 
     callbacks = set_callback_parameters(train_gen, model, batch_size, epochs)
 
+    print("[INFO] Model training")
     history = launch_training(model, train_gen, epochs, callbacks, valid_gen)
+    print("[INFO] Model training done")
 
     # saving
+    print("[INFO] Model Saving.")
     acc = get_acc(model, test_df, test_gen)
     save_model(model_name, save_path, model, acc, save_weight=False)
     plot_training(history, save_path, plt_fig_size=(20, 8))

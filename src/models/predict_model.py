@@ -159,7 +159,7 @@ def save_confusion_matrix(test_gen, y_pred, savepath, normalize=False):
     "--cm_normalize",
     type=click.Choice(["True", "False"]),
     default="False",
-    help="Should the CM be normalized.",
+    help="Should the Classification Matrix be normalized.",
 )
 def predict_model(
     model_name,
@@ -184,24 +184,30 @@ def predict_model(
     data_dir = pathlib.Path(path_to_data) / covid_dataset_processed_name
 
     # load model
+    print("[INFO] Model loading")
     model = load_model(model_save_path)
 
     # load data
+    print("[INFO] Data loading")
     train_df, valid_df, test_df, train_gen, valid_gen, test_gen = loading_dataset(
         data_dir, batch_size
     )
 
     # evaluate
+    print("[INFO] Model evaluation")
     train_score, valid_score, test_score = evaluate_model(
         test_df, model, train_gen, valid_gen, test_gen
     )
     preds, y_pred = get_predictions(model, test_gen)
 
     # plot
+    print("[INFO] Model results plotting and saving")
     classes = list(test_gen.class_indices.keys())
     save_classification_report(test_gen, y_pred, save_location, classes)
     cm_normalize = cm_normalize == "True"
     save_confusion_matrix(test_gen, y_pred, save_location, normalize=cm_normalize)
+    
+    print("[INFO] Model evaluation done.")
 
 
 if __name__ == "__main__":

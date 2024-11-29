@@ -1,5 +1,7 @@
 # import system libs
+import os
 import pathlib
+import gc
 
 # log and command
 import click
@@ -7,26 +9,15 @@ import click
 # import data handling tools
 import numpy as np
 
-# Ignore Warnings
-import warnings
-
-warnings.filterwarnings("ignore")
-
-
-"""
-NB import
-"""
-import numpy as np
-import tensorflow as tf
-
-# from tqdm import tqdm
-import os
 import cv2
 import matplotlib.pyplot as plt
 import random
 import yaml
+# from tqdm import tqdm
 
 # import Deep learning Libraries
+from sklearn.model_selection import train_test_split
+import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import (
     Input,
@@ -45,17 +36,34 @@ from tensorflow.keras.callbacks import (
     ReduceLROnPlateau,
 )
 
-import gc
+# Ignore Warnings
+import warnings
 
-from sklearn.model_selection import train_test_split
+warnings.filterwarnings("ignore")
 
 
 def check_for_GPU():
     return bool(tf.config.list_physical_devices("GPU"))
 
 
-# visualise image and mask
 def plotMask(X, y):
+    """
+    Visualizes a set of images (X) and their corresponding masks (y) in a grid layout.
+
+    Args:
+        X (list): A list of images, where each image is a numpy array.
+        y (list): A list of masks, where each mask is a numpy array with the same
+                shape as the corresponding image in X.
+
+    Raises:
+        ValueError: If the lengths of X and y are not equal.
+        ValueError: If the shapes of the images in X are not all the same.
+        ValueError: If the shapes of the masks in y are not all the same, or 
+                    don't match the shapes of the corresponding images in X.
+
+    Returns:
+        None: This function does not explicitly return a value, but it show an image.
+    """
     sample = []
 
     for i in range(6):
@@ -81,6 +89,24 @@ def plotMask(X, y):
 
 
 def getData(data_folder_path, X_shape=256, dim=256, N=None):
+    """Loads and preprocesses image and mask data.
+
+    This function loads images and corresponding masks from specified folders,
+    resizes them to a given shape, and returns them as NumPy arrays.
+
+    Args:
+        data_folder_path: Path to the root data directory containing subfolders for
+                            different image categories.
+        X_shape: Desired width and height of the resized images and masks.
+        dim: Dimensionality of the input data (e.g., 1 for grayscale images).
+        N: Maximum number of images to load per category. If None, all images
+            are loaded.
+
+    Returns:
+    A tuple of two NumPy arrays:
+        - Images: A 4D NumPy array of shape (N, dim, dim, 1).
+        - Masks: A 4D NumPy array of shape (N, dim, dim, 1).
+    """
     data_folder_path = pathlib.Path(data_folder_path)
     im_array = []
     mask_array = []
@@ -112,6 +138,25 @@ def getData(data_folder_path, X_shape=256, dim=256, N=None):
 
 
 def to_dataset(images, masks, batch_size):
+    """Splits and preprocesses data for training and validation.
+
+    This function splits the input images and masks into training, validation, and test sets.
+    It normalizes the images, converts masks to binary, and returns the split data.
+
+    Args:
+        images: A NumPy array of images.
+        masks: A NumPy array of masks.
+        batch_size: The desired batch size for training and validation.
+
+    Returns:
+    A tuple of six NumPy arrays:
+        - Training images
+        - Validation images
+        - Test images
+        - Training masks
+        - Validation masks
+        - Test masks
+    """
     train_vol, valid_vol, train_seg, valid_seg = train_test_split(
         (images - 127) / 127,
         (masks > 127).astype(np.float32),
@@ -128,6 +173,27 @@ def to_dataset(images, masks, batch_size):
 def to_datagen(
     batch_size, train_vol, valid_vol, test_vol, train_seg, valid_seg, test_seg
 ):
+    """Creates data generators for training, validation, and testing.
+
+    This function creates ImageDataGenerator instances for training, validation, and testing.
+    It configures the generators with the given batch size and applies data augmentation techniques
+    to the training data.
+
+    Args:
+        batch_size: The desired batch size for training and validation.
+        train_vol: A NumPy array of training images.
+        valid_vol: A NumPy array of validation images.
+        test_vol: A NumPy array of test images.
+        train_seg: A NumPy array of training masks.
+        valid_seg: A NumPy array of validation masks.
+        test_seg: A NumPy array of test masks.
+
+    Returns:
+    A tuple of three ImageDataGenerator instances:
+        - The training data generator
+        - The validation data generator
+        - The test data generator
+    """
     datagen = ImageDataGenerator()
     # Augmenter respectivement les jeu de données d'entrainement
     train_dataset = datagen.flow(train_vol, train_seg, batch_size=batch_size)
@@ -145,8 +211,20 @@ def to_datagen(
     return train_dataset, test_dataset, val_dataset
 
 
-# Importing data
 def wrap_plotMask(size_max_cat):
+    """Loads and visualizes a subset of image and mask data.
+
+    This optionnal function loads a specified number of images and masks from 
+    a dataset, preprocesses them, and visualizes a sample of the data.
+
+    Args:
+        size_max_cat: The maximum number of images to load per category.
+
+    Returns:
+    A tuple containing:
+        - The loaded images as a NumPy array.
+        - The corresponding masks as a NumPy array.
+    """
     dim = 256
     images, masks = getData(dim, N=size_max_cat)
     print("visualize dataset")
@@ -160,6 +238,16 @@ def wrap_plotMask(size_max_cat):
 
 
 def unet(input_size=(256, 256, 1)):
+    """Creates a U-Net model for image segmentation.
+
+    This function defines a U-Net architecture.
+
+    Args:
+        input_size: A tuple representing the input image dimensions (height, width, channels).
+
+    Returns:
+        A Keras model instance.
+    """
     inputs = Input(input_size)
 
     conv1 = Conv2D(32, (3, 3), activation="relu", padding="same")(inputs)
@@ -215,6 +303,28 @@ def unet(input_size=(256, 256, 1)):
 
 
 def get_callback_list(save_path, save_name="cxr_reg_segmentation.best.keras"):
+    """
+    Creates a list of callbacks for use during model training.
+
+    This function generates a list of callbacks commonly used during model training
+    to improve performance and convergence. The callbacks included are:
+
+    - ModelCheckpoint: Saves the model weights with the best validation loss.
+    - ReduceLROnPlateau: Reduces the learning rate if the validation loss 
+    stagnates for a certain number of epochs.
+    - EarlyStopping: Stops training if the validation loss fails to improve
+    for a certain number of epochs.
+
+    Args:
+        save_path (pathlib.Path): The path to the directory where the model weights 
+            will be saved.
+        save_name (str, optional): The name of the file to save the model weights 
+            to. Defaults to "cxr_reg_segmentation.best.keras".
+
+    Returns:
+        list: A list containing the three callback instances: ModelCheckpoint,
+            ReduceLROnPlateau, and EarlyStopping.
+    """
     weight_path = pathlib.Path(save_path) / save_name
     checkpoint = ModelCheckpoint(
         weight_path, monitor="val_loss", verbose=1, save_best_only=True, mode="min"
@@ -234,6 +344,18 @@ def get_callback_list(save_path, save_name="cxr_reg_segmentation.best.keras"):
 
 
 def compile_model(display_summary=False, input_size=(256, 256, 1)):
+    """Compiles a U-Net model for image segmentation.
+
+    This function creates a U-Net model and compiles it with the specified optimizer,
+    loss function, and metrics. Optionally, it prints a summary of the model architecture.
+
+    Args:
+        display_summary: Whether to print a summary of the model architecture.
+        input_size: A tuple representing the input image dimensions (height, width, channels).
+
+    Returns:
+        A compiled Keras model.
+    """
     model = unet(input_size=input_size)
     model.compile(
         optimizer=Adam(learning_rate=0.0001),
@@ -247,11 +369,33 @@ def compile_model(display_summary=False, input_size=(256, 256, 1)):
 
 
 def clear_temp():
+    """Clears temporary variables and resources.
+
+    This function releases memory used by temporary variables and TensorFlow's
+    backend session, potentially improving performance and preventing memory leaks.
+    """
     gc.collect()
     tf.keras.backend.clear_session()
 
 
 def training(model, train_dataset, test_dataset, batch_size, callbacks_list):
+    """Trains a machine learning model.
+
+    This function trains the provided `model` on the `train_dataset` with a batch size of
+    `batch_size` for 3 epochs. It uses the `test_dataset` for validation and applies any
+    callbacks specified in the `callbacks_list`.
+
+    Args:
+        model (tf.keras.Model): The model to be trained.
+        train_dataset (tf.data.Dataset): The training dataset.
+        test_dataset (tf.data.Dataset): The validation dataset.
+        batch_size (int): The batch size to use during training.
+        callbacks_list (list): A list of Keras callbacks to apply during training.
+
+    Returns:
+        history (History): A Keras `History` object containing the loss history
+            across epochs.
+    """
     loss_history = model.fit(
         train_dataset,
         batch_size=batch_size,
@@ -263,6 +407,20 @@ def training(model, train_dataset, test_dataset, batch_size, callbacks_list):
 
 
 def plot_training(loss_history, save_path, title="training_history"):
+    """Plots training and validation metrics.
+
+    This function visualizes the training and validation loss and accuracy curves
+    from a Keras `History` object.
+
+    Args:
+        loss_history: A Keras `History` object containing training and validation
+            metrics.
+        save_path: The path to the directory where the plot will be saved.
+        title: The title of the plot. Defaults to "training_history".
+
+    Returns:
+        None: This function does not explicitly return a value, but it saves an image.
+    """
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
     ax1.plot(loss_history.history["loss"], "-", label="Loss")
     ax1.plot(loss_history.history["val_loss"], "-", label="Validation Loss")
@@ -282,16 +440,54 @@ def plot_training(loss_history, save_path, title="training_history"):
 
 
 def dice_coefficient(y_true, y_pred):
+    """Calculates the Dice coefficient between two binary masks.
+
+    The Dice coefficient is a similarity metric, it measures the 
+    overlap between the ground truth mask (y_true) and the predicted mask (y_pred).
+
+    Args:
+        y_true: A NumPy array representing the ground truth mask.
+        y_pred: A NumPy array representing the predicted mask.
+
+    Returns:
+        The Dice coefficient between the two masks.
+    """
     intersection = np.sum(y_true * y_pred)
     return (2.0 * intersection) / (np.sum(y_true) + np.sum(y_pred))
 
 
 def dice_loss(y_true, y_pred):
+    """Calculates the Dice loss between two binary masks.
+
+    Dice loss is based on the Dice coefficient and measures the 
+    dissimilarity between the ground truth mask (y_true) and the 
+    predicted mask (y_pred).
+
+    Args:
+        y_true: A NumPy array representing the ground truth mask.
+        y_pred: A NumPy array representing the predicted mask.
+
+    Returns:
+        The Dice loss value.
+    """
     loss = 1 - dice_coefficient(y_true, y_pred)
     return loss
 
 
 def test_accuracy(model, X, y):
+    """Evaluates the model's performance on a given dataset.
+
+    This function calculates the Dice coefficient, Dice loss, and pixel-wise accuracy
+    of the model's predictions on the provided input data (X) and ground truth labels (y).
+
+    Args:
+        model: The trained model to evaluate.
+        X: The input data, typically a NumPy array of images.
+        y: The ground truth labels, typically a NumPy array of masks.
+
+    Returns:
+        A tuple containing the Dice coefficient, Dice loss, and pixel accuracy scores.
+    """
     X_test, y_test = X, y
     batch_size = 8
     predictions = model.predict(X_test, batch_size=batch_size)
@@ -318,6 +514,25 @@ def test_accuracy(model, X, y):
 def print_test_accuracy(
     model_seg, train_vol, train_seg, test_vol, test_seg, valid_vol, valid_seg
 ):
+    """Evaluates the model on training, validation, and test sets and prints results.
+
+    This function evaluates the given model on the specified training, validation, and test sets.
+    It calculates the Dice coefficient, Dice loss, and pixel accuracy for each set and prints the results.
+    It also returns a dictionary containing these scores for each set.
+
+    Args:
+        model_seg: The trained segmentation model.
+        train_vol: The training images.
+        train_seg: The training masks.
+        test_vol: The test images.
+        test_seg: The test masks.
+        valid_vol: The validation images.
+        valid_seg: The validation masks.
+
+    Returns:
+        A dictionary containing the scores for training, validation, and test sets, each with
+        'dice_coefficient_score', 'dice_loss_score', and 'accuracy' keys.
+    """
     score_dict = {}
     print("Training dataset:")
     dice_coefficient_score, dice_loss_score, accuracy = test_accuracy(
@@ -392,11 +607,6 @@ def save_model(model_name, save_path, model, acc, save_weight=False):
         print(f"weights were saved as {weights_save_loc}")
 
 
-# @click.option("--epochs", default=2, help="Number of epoch to train on.")
-# @click.option("--img_width", default=224, help="Input image width for the model")
-# @click.option("--img_height", default=224, help="Input image height for the model")
-
-
 @click.command(context_settings={"show_default": True})
 @click.option(
     "--path_to_data",
@@ -420,11 +630,11 @@ def train_seg_model(
     save_path,
     batch_size,
 ):
-    """Main function to train the UNet segmentation model on the kaggle covid19-radiography-database.
+    """Main function to train the UNet segmentation model on the Kaggle COVID19-radiography-database.
 
-    This scripts is meant to be executed in its folder with the command "python3 train_seg_model.py".
+    This script is meant to be executed in its folder with the command "python3 train_seg_model.py".
+
     """
-
     # config
     path_to_data = pathlib.Path(path_to_data)
     save_path = pathlib.Path(save_path)
