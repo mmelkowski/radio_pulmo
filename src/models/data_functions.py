@@ -276,4 +276,4 @@ def load_resize_img_from_buffer(BytesIO_obj):
     img = cv2.resize(img, dsize=target_size)
 
     img = np.array(img).reshape(1, 224, 224, 3)
-    return img
+    return img_array, img

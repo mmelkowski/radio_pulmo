@@ -241,6 +241,27 @@ def make_gradcam_heatmap(img_array, model, last_conv_layer_name, pred_index=None
     return heatmap.numpy()
 
 
+def overlay_heatmap_on_array(heatmap, img_array, alpha=0.4):
+    print(img_array.shape)
+    img = img_array #[0, :, :, 0]  # select only 1
+
+    print(img.shape)
+    print(heatmap.shape)
+
+    heatmap = np.uint8(255 * heatmap)  # Rescale heatmap to 0-255
+    heatmap = np.expand_dims(heatmap, axis=-1)
+
+    # Resize heatmap to match image dimensions
+    heatmap = tf.image.resize(heatmap, (img.shape[0], img.shape[1])).numpy()
+    heatmap = tf.keras.preprocessing.image.array_to_img(heatmap)
+    heatmap = np.array(heatmap)
+
+    # Create a heatmap overlay
+    overlay = np.clip(img * (1 - alpha) + heatmap * alpha, 0, 255).astype("uint8")
+    overlay = np.clip(img * (1 - alpha) + heatmap * alpha, 0, 255).astype("uint8")
+    return overlay
+
+
 def overlay_heatmap(heatmap, img_path, alpha=0.4):
     """Overlays a heatmap onto an image.
 
