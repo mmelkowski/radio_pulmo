@@ -3,8 +3,11 @@ import os
 import pathlib
 
 # import data handling tools
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
+import cv2
+from PIL import Image
 
 # import Deep learning Libraries
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -247,3 +250,30 @@ def loading_dataset(data_dir, batch_size, seed=42):
         return train_df, valid_df, test_df, train_gen, valid_gen, test_gen
     except TypeError:
         print("Invalid Input")
+
+
+def load_file(fpath):
+    """Function for loading a file as a generator for model prediciton
+    """
+    img = cv2.imread(fpath)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    # re-size for model
+    target_size = (224,224)
+    img = cv2.resize(img, dsize=target_size)
+
+    img = np.array(img).reshape(1, 224, 224, 3)
+    return img
+
+
+def load_resize_img_from_buffer(BytesIO_obj):
+    """Function for loading a file as a generator for model prediciton
+    """
+    image = Image.open(BytesIO_obj)
+    img_array = np.array(image)
+    img = cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB)
+    # re-size for model
+    target_size = (224,224)
+    img = cv2.resize(img, dsize=target_size)
+
+    img = np.array(img).reshape(1, 224, 224, 3)
+    return img

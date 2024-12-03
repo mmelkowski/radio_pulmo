@@ -1,13 +1,27 @@
 import streamlit as st
 import pathlib
 import sys
+import io
+import cv2
+import numpy as np
 
 # To load our custom model functions
-#path = pathlib.Path("..").resolve()
 path = pathlib.Path("../models").resolve()
 sys.path.insert(0, str(path))
+path = pathlib.Path("..").resolve()
+sys.path.insert(0, str(path))
 
-from models.predict_model import get_predictions
+# clean for reloading scriptwithout spamming sys.path insert
+sys.path = list(dict.fromkeys(sys.path))
+
+from model_functions import load_model, keras_predict_model, get_predict_value
+from data_functions import load_resize_img_from_buffer
+from predict_model import get_predictions
+
+# App config:
+model_save_path="../../models/EfficientNetB4_masked-Covid-19_masked-91.45.keras"
+seg_model_save_path="../../models/unet-0.98.keras"
+
 
 # import custom Navigation bar
 from modules.nav import Navbar
@@ -29,7 +43,39 @@ Des exemples sont fournis ci-dessous pour pouvoir tester l'application.
 </div>"""
 st.markdown(context_text, unsafe_allow_html=True)
 
-uploaded_file = st.file_uploader("Fichier à prédire:", type=['png', 'jpg','zip'])
+uploaded_file = st.file_uploader("Fichier ou dossier à prédire:", type=['png', 'jpg', 'zip'])
 if uploaded_file is not None:
-    st.text(uploaded_file)
-    print(uploaded_file.name)
+    f_type = uploaded_file.type.split("/")[-1]
+    if f_type in ['png', 'jpg']:
+        # si png, jpg
+
+        img = load_resize_img_from_buffer(uploaded_file)
+        st.image(img, caption="Image loaded after re-sizing:", use_container_width=False)
+
+        masked_value = st.selectbox("Est-ce que l'image est masqué ? (Ne présente que les poumons et pas le coeur, foie et autre marquage)*",
+                                    ("Oui", "Non"))
+        masked_value = True if masked_value == "Oui" else False
+
+        if st.button("Démarrer la prediction", icon="🚀"):
+            # load model
+            model = load_model(model_save_path)
+
+            # make predict
+            pred = keras_predict_model(model, img)
+
+            # Interpret prediction
+            pred = get_predict_value(pred)
+
+            st.text(pred)
+
+        # make gradcam
+
+    elif f_type == "zip":
+        # si zip prediction sur folder, retour que d'un df avec name / prediction
+        print("A folder to process")
+
+
+    else:
+        raise TypeError("Wrong file type submitted (not 'png', 'jpg' or 'zip')")
+        
+
