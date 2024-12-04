@@ -5,6 +5,7 @@ from PIL import Image
 import numpy as np
 import plotly.express as px
 import pandas as pd
+import pathlib
 
 # import custom Navigation bar
 from modules.nav import Navbar
@@ -55,7 +56,8 @@ Un sous-échantillon du jeu de données préprocessé est présenté ci-dessous.
 st.markdown(text_3,unsafe_allow_html=True)
 
 # Ouvrir le dataframe
-with open('resources\df_small.pkl', 'rb') as f:
+df_small_path = pathlib.Path('resources/df_small.pkl')
+with open(df_small_path, 'rb') as f:
     df_small = pickle.load(f)
 
 
@@ -145,7 +147,8 @@ st.markdown(text_6, unsafe_allow_html=True)
 # Charger le dataset contenant uniquement label, source, moyenne et std par image
 @st.cache_data
 def load_data():
-    df = pd.read_pickle('resources/df_mean_std.pkl')
+    df_mean_std_path = pathlib.Path('resources/df_mean_std.pkl')
+    df = pd.read_pickle(df_mean_std_path)
     return df
 
 # Charger les données
@@ -264,9 +267,8 @@ Pour aller plus loin, on trace l’image moyenne par groupe.
 st.markdown(text_8, unsafe_allow_html=True)
 
 # Ouvrir le dataframe
-
-# Ouvrir le dataframe
-with open('resources\df_avg_img.pkl', 'rb') as g:
+df_avg_img_path = pathlib.Path('resources/df_avg_img.pkl')
+with open(df_avg_img_path, 'rb') as g:
     df_avg_img = pickle.load(g)
 
 
