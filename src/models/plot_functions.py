@@ -245,9 +245,7 @@ def overlay_heatmap_on_array(heatmap, img_array, alpha=0.4):
     print(img_array.shape)
     img = img_array #[0, :, :, 0]  # select only 1
 
-    print(img.shape)
-    print(heatmap.shape)
-
+    #heatmap = heatmap.reshape((heatmap.shape[0], heatmap.shape[1], 1))
     heatmap = np.uint8(255 * heatmap)  # Rescale heatmap to 0-255
     heatmap = np.expand_dims(heatmap, axis=-1)
 

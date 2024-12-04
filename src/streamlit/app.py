@@ -4,6 +4,10 @@ import sys
 import io
 import cv2
 import numpy as np
+import plotly
+import matplotlib.cm as cm
+import matplotlib.image as mpimg
+from PIL import Image
 
 # To load our custom model functions
 path = pathlib.Path("../models").resolve()
@@ -21,21 +25,7 @@ from plot_functions import make_gradcam_heatmap, overlay_heatmap_on_array
 # App config:
 model_save_path="../../models/EfficientNetB4_masked-Covid-19_masked-91.45.keras"
 seg_model_save_path="../../models/unet-0.98.keras"
-
-a = """
-button_launch_predict = st.empty()
-button_launch_grad_cam = st.empty()
-"""
-if "button_launch_predict" not in st.session_state:
-    st.session_state.button_launch_predict = False
-if "button_launch_grad_cam" not in st.session_state:
-    st.session_state.button_launch_grad_cam = False
-
-def onClick_launch_predict():
-    st.session_state.click = True
-
-def onClick_launch_grad_cam():
-    st.session_state.click = True
+cmap = cm.viridis
 
 # import custom Navigation bar
 from modules.nav import Navbar
@@ -76,57 +66,82 @@ if uploaded_file is not None:
         img_original_array, img = load_resize_img_from_buffer(uploaded_file)
         st.image(img, caption="Image loaded after re-sizing", use_container_width=False)
 
-        masked_value = st.selectbox("Est-ce que l'image est masqué ? (Ne présente que les poumons et pas le coeur, foie et autre marquage)*",
-                                    ("Oui", "Non"))
-        masked_value = True if masked_value == "Oui" else False
+        action_required = st.selectbox("Voulez vous prédire ou visualiser (Grad-CAM) l'image ?",
+                                       ("Prédire", "Visualiser"))
 
-        left, middle, right = st.columns(3)
-        if middle.button("Démarrer la prediction", icon="🚀", on_click=onClick_launch_predict):
-            with st.status("Prediction en cours...", expanded=True):
+        if action_required == "Prédire":
+            masked_value = st.selectbox("Est-ce que l'image est masqué ? (Ne présente que les poumons et pas le coeur, foie et autre marquage)*",
+                                        ("Oui", "Non"))
+            masked_value = True if masked_value == "Oui" else False
 
-                if not masked_value:
-                    st.write("Masquage à faire...")
-                    st.write("Chargement du model de segmentation...")
+            left, middle, right = st.columns(3)
+            if middle.button("Démarrer la prediction", icon="🚀"):
+                with st.status("Prediction en cours...", expanded=True):
+
+                    if not masked_value:
+                        st.write("Masquage à faire...")
+                        st.write("Chargement du model de segmentation...")
+                        # load model
+                        seg_model = load_model(seg_model_save_path)
+
+
+                    st.write("Chargement du model de prediction...")
                     # load model
-                    seg_model = load_model(seg_model_save_path)
+                    model = load_model(model_save_path)
 
+                    # make predict
+                    st.write("Prédiction...")
+                    pred = keras_predict_model(model, img)
 
-                st.write("Chargement du model de prediction...")
-                # load model
-                model = load_model(model_save_path)
+                    # Interpret prediction
+                    st.write("Interpretation...")
+                    pred = get_predict_value(pred)
 
-                # make predict
-                st.write("Prédiction...")
-                pred = keras_predict_model(model, img)
+                    st.write("Prédiction fini.")
 
-                # Interpret prediction
-                st.write("Interpretation...")
-                pred = get_predict_value(pred)
+                st.success("Prédiction effectué")
 
-                st.write("Prédiction fini.")
+                st.text(f" L'image est classé comme: {pred}")
 
-            st.success("Prédiction effectué")
+        elif action_required == "Visualiser":
 
-            st.text(f" L'image est classé comme: {pred}")
-
-            # make gradcam
             layer_name = st.selectbox("Choix de la layer à visualiser (Trié dans l'ordre: première, milieu, dernière):",
-                                        ("stem_conv", "block4f_expand_conv", "top_conv"))
-            
-            #if st.button("Dessiner le Grad-CAM", icon="🚀", on_click=onClick_launch_grad_cam):
-            efficientnet = model.get_layer("efficientnetb4")
-            heatmap = make_gradcam_heatmap(img, efficientnet, layer_name)
+                                                ("stem_conv", "block4f_expand_conv", "top_conv"))
 
-            # Overlay the heatmap on the original image
-            overlay = overlay_heatmap_on_array(heatmap, img_original_array, alpha=0.4)
+            left, middle, right = st.columns(3)
+            if middle.button("Démarrer la visualisation", icon="🚀"):
 
-            st.image(overlay, caption="Grad-CAM Applied:", use_container_width=False)
+                with st.status("Visualisation en cours...", expanded=True):
 
+                    st.write("Chargement du model...")
+                    # load model
+                    model = load_model(model_save_path)
+                    efficientnet = model.get_layer("efficientnetb4")
+
+                    st.write("Création de l'overlay...")
+                    # make gradcam
+                    heatmap = make_gradcam_heatmap(img, efficientnet, layer_name)
+
+                    # Overlay the heatmap on the original image
+                    overlay = overlay_heatmap_on_array(heatmap, img_original_array, alpha=0.4)
+
+                    st.write("Grad-CAM fini.")
+
+                # Normalize the array to the range [0, 1]
+                heatmap = (heatmap - np.min(heatmap)) / (np.max(heatmap) - np.min(heatmap))
+                overlay = (overlay - np.min(overlay)) / (np.max(overlay) - np.min(overlay))
+
+                # Apply the colormap to the normalized array
+                heatmap = cmap(heatmap)
+                overlay = cmap(overlay)
+
+                # Display image
+                st.image(overlay, caption="Grad-CAM Applied", use_container_width=False)
+                st.image(heatmap, caption="Heatmap generated", use_container_width=False)
 
     elif f_type == "zip":
         # si zip prediction sur folder, retour que d'un df avec name / prediction
         print("A folder to process")
-
 
     else:
         raise TypeError("Wrong file type submitted (not 'png', 'jpg' or 'zip')")
