@@ -1,7 +1,7 @@
 import streamlit as st
 import pickle
 import matplotlib.pyplot as plt
-from PIL import Image
+from PIL import Image, ImageEnhance
 import numpy as np
 import plotly.express as px
 import pandas as pd
@@ -49,7 +49,7 @@ Le preprocessing suivant e sur les données :
 - Transformation en jeu de données tabulaire
 
 Le jeu de données préprocessé utilisé pour notre étude contient 21 165 images après masquage réparties en quatre classes.
-Un sous-échantillon du jeu de données préprocessé est présenté ci-dessous.
+
 
 </div>
 """
@@ -61,13 +61,14 @@ with open(df_small_path, 'rb') as f:
     df_small = pickle.load(f)
 
 
-#### A ameliorer pour afficher 2 images
+#### A ameliorer pour afficher 2 images par type
+sampled_images = df_small.groupby('label').apply(lambda x: x.sample(n=2)).reset_index(drop=True)
+#sampled_images = df_small.sample(n=8) 
 
-sampled_images = df_small.sample(n=8) 
-
-# Afficher le DataFrame 
-st.write(sampled_images)
-
+# Afficher le dataframe avec un bouton 
+if st.button("Afficher le jeu de données"):
+    # Si le bouton est cliqué, afficher le jeu de données
+    st.write(sampled_images)
 
 vis_text = """
 ## Visualisation d'un échantillon d'images 
@@ -82,7 +83,7 @@ cols = st.columns(4)
 
 #### Si possible rendre fonctionnel l affichage apres centrage
 
-show_centered_images = st.checkbox("Afficher les images après centrage")
+show_centered_images = st.checkbox("Augmenter le contraste et la saturation")
 
 # Répartir les images sur 3 colonnes, 2 images par colonne
 for i, (index, row) in enumerate(sampled_images.iterrows()):
@@ -91,11 +92,15 @@ for i, (index, row) in enumerate(sampled_images.iterrows()):
     img_array = row['image']
 
     if show_centered_images:
-        img_array = (img_array-127)/127
-        #img_array = np.clip(img_array, -1, 1)
-        #img = Image.fromarray(((img_array + 1) * 127).astype(np.uint8))
+        img = img_array.reshape(256, 256)
         img = Image.fromarray(img)
-        img = img.convert('RGB')
+        img = img.convert('L')
+        # Augmenter le contraste de l'image
+        enhancer = ImageEnhance.Contrast(img)
+        img = enhancer.enhance(1.5)  # Augmenter le contraste par un facteur de 2
+        # Changer la colorimétrie (ex. augmenter la saturation)
+        enhancer = ImageEnhance.Color(img)
+        img_rgb = enhancer.enhance(1.2)
         cols[col_index].image(img, caption=f'{row["nom"]}')
     else:
         img = img_array.reshape(256, 256)
@@ -189,15 +194,19 @@ Une autre possibilité de visualisation est de tracer le nuage de point de la va
 """
 st.markdown(text_7, unsafe_allow_html=True)
 
-fig = px.scatter(
+fig1 = px.scatter(
         df_mean_std, x='mean_pixel', y='std_pixel', color='label', title="Moyenne et Ecart-Type des Pixels par Label ", 
         labels={'mean_pixel': 'Moyenne des Pixels', 'std_pixel': 'Ecart-Type des Pixels'},
         #template="plotly_dark"
         )  # Utilisation d'un fond sombre
+fig1.update_traces(marker=dict(size=2))
 
-fig.update_traces(marker=dict(size=2))
 
-st.plotly_chart(fig)
+
+# Afficher le dataframe avec un bouton 
+if st.button("Afficher le graphique de l'écart type en fonction de la moyenne pour l'ensemble du jeu de données"):
+    # Si le bouton est cliqué, afficher le jeu de données
+    st.plotly_chart(fig1)
 
 ### A améliorer pour demander si on veut plus d'info et idealement conserver les couleurs entre les deux graphs.
 
@@ -206,7 +215,7 @@ text_8 = """
 Le graphique ci-dessous permet de visualiser les catégories une par une pour améliorer la lisibilté
 </div>
 """
-st.markdown(text_8, unsafe_allow_html=True)
+#st.markdown(text_8, unsafe_allow_html=True)
 
 
 # Créer le graphique avec Plotly Express
@@ -221,32 +230,39 @@ def create_plot(label):
     fig.update_traces(marker=dict(size=3))
     return fig
 
-# Récupérer tous les labels uniques
-labels = df_mean_std['label'].unique()
+# # Récupérer tous les labels uniques
+# labels = df_mean_std['label'].unique()
 
-# Initialiser l'index du label actuel dans la session
-if 'label_index' not in st.session_state:
-    st.session_state.label_index = 0  # Commencer avec le premier label
+# # Initialiser l'index du label actuel dans la session
+# if 'label_index' not in st.session_state:
+#     st.session_state.label_index = 0  # Commencer avec le premier label
 
 # Afficher le graphique pour le label actuel
-current_label = labels[st.session_state.label_index]
-fig = create_plot(current_label)
-
-# Afficher le graphique Plotly
-st.plotly_chart(fig)
-
+# current_label = labels[st.session_state.label_index]
 # Boutons pour naviguer entre les labels
-col1, col2 = st.columns(2)
-with col1:
-    if st.button('Précédent'):
-        # Mettre à jour l'index pour revenir au label précédent
-        st.session_state.label_index = (st.session_state.label_index - 1) % len(labels)
+# col1, col2 = st.columns(2)
+# with col1:
+#     if st.button('Précédent'):
+#         # Mettre à jour l'index pour revenir au label précédent
+#         st.session_state.label_index = (st.session_state.label_index - 1) % len(labels)
 
-with col2:
-    if st.button('Suivant'):
-        # Mettre à jour l'index pour passer au label suivant
-        st.session_state.label_index = (st.session_state.label_index + 1) % len(labels)
+# with col2:
+#     if st.button('Suivant'):
+#         # Mettre à jour l'index pour passer au label suivant
+#         st.session_state.label_index = (st.session_state.label_index + 1) % len(labels)
 
+# Afficher le dataframe avec un bouton 
+label = st.selectbox("Afficher le graphique pour une seule catégorie pour plus de lisibilité ?", 
+                     options=["Aucune sélection"] + list(df_mean_std['label'].unique()), 
+                     index=0)  # "Aucune sélection" sera la première option
+
+# Vérifier si l'utilisateur a sélectionné une catégorie autre que "Aucune sélection"
+if label != "Aucune sélection":
+    # Créer le graphique basé sur le label sélectionné
+    fig2 = create_plot(label)
+    
+    # Afficher le graphique
+    st.plotly_chart(fig2)
 
 # st.image("resources/decouverte_donnees/relplot.png")
 
@@ -257,11 +273,11 @@ text_8 = """
 <div style="text-align: justify;">
 
 Dans les deux représentations, on remarque que les valeurs des pixels diffèrent en fonction des catégories. Les données semblent également plus dispersées pour les catégories COVID et Lung Opacity.
-Les valeurs sont plus extrêmes dans le cas de la catégorie "Viral Pneumonia".
+Les valeurs sont en moyenne plus élevées pour les catégories COVID et Viral Pneumonia.
 
 ## Images moyennes par type et par source
 
-Pour aller plus loin, on trace l’image moyenne par groupe.
+Pour aller plus loin, on peut tracer l’image moyenne par groupe*source de données.
 </div>
 """
 st.markdown(text_8, unsafe_allow_html=True)
@@ -272,20 +288,24 @@ with open(df_avg_img_path, 'rb') as g:
     df_avg_img = pickle.load(g)
 
 
-cols2 = st.columns(5)
 
-# Ameliorer la visuatlisation des images et la mise en page
+# Afficher le dataframe avec un bouton 
+if st.button("Afficher les images moyennes par source"):
+    # Si le bouton est cliqué, afficher le jeu de données
+    cols2 = st.columns(5)
 
-# Répartir les images sur 3 colonnes, 2 images par colonne
-for i, (index, row) in enumerate(df_avg_img.iterrows()):
-    col_index = i % 5 
+    # Ameliorer la visuatlisation des images et la mise en page
 
-    img_array = row['image']
+    # Répartir les images sur 3 colonnes, 2 images par colonne
+    for i, (index, row) in enumerate(df_avg_img.iterrows()):
+        col_index = i % 5 
 
-    img = img_array.reshape(256, 256)
-    img = Image.fromarray(img)
-    img = img.convert('RGB')
-    cols2[col_index].image(img, caption=f'{row["label_source"]}')
+        img_array = row['image']
+
+        img = img_array.reshape(256, 256)
+        img = Image.fromarray(img)
+        img = img.convert('RGB')
+        cols2[col_index].image(img, caption=f'{row["label_source"]}')
 
 
 #st.image("resources/decouverte_donnees/mean.png")
@@ -295,10 +315,11 @@ text_9 = """
 
 ### Interprétation
 
-Il semble y avoir un biais sur les analyses radio pulmonaires liées à la pneumonie virale : le cœur est proportionnellement plus important et l’application du masque efface la partie inférieure du poumon gauche. 
-Les données de la source “pneumonia-chestxray” ne semble pas présenter cette déformation.
+Il semble y avoir un biais sur les radiographie pulmonaires liées à la pneumonie virale : le cœur est proportionnellement plus important et l’application du masque efface la partie inférieure du poumon gauche. 
+Les données étiquetées comme normale de la source "-chestxray” ne semble pas présenter cette déformation.
 
 Sans certitude, on émet l’hypothèse que les données associés à la pneumonie virale sont des radiographies pulmonaires d’enfants.
+
 Un biais risque donc d'être présent dans la modélisation de cette catégorie.
 """
 st.markdown(text_9, unsafe_allow_html=True)
