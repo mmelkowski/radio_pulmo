@@ -12,4 +12,5 @@ def Navbar():
         st.page_link('app.py', label='Application', icon='🚀') # 🚀🔥
         st.page_link('pages/context.py', label='Contexte', icon='🧩') # 📚🖼️
         st.page_link('pages/data_discovery.py', label='Découverte des données', icon='🔍')
+        st.page_link('pages/acp.py', label='ACP sur les données', icon='🎯') #🧮🔵
         st.page_link('pages/model.py', label='Modélisation', icon='📊') #🤖🛠️
