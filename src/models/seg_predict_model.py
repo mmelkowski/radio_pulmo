@@ -96,9 +96,9 @@ def apply_mask(img, msk, resize=False, width=256, height=256):
         The masked image as a NumPy array.
     """
     msk = msk.astype(img.dtype)
-    masked_image = cv2.bitwise_and(img, msk)
     if resize:
-        masked_image = cv2.resize(masked_image, dsize=(width, height))
+        msk = cv2.resize(msk, dsize=(width, height))
+    masked_image = cv2.bitwise_and(img, msk)
 
     return masked_image
 
