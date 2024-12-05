@@ -88,7 +88,7 @@ def apply_mask(img, msk, resize=False, width=256, height=256):
     Args:
         img: The input image as a NumPy array.
         msk: The binary mask as a NumPy array.
-        resize: Whether to resize the masked image. Defaults to False.
+        resize: Whether to resize the mask. Defaults to False.
         width: The desired width of the resized image.
         height: The desired height of the resized image.
 

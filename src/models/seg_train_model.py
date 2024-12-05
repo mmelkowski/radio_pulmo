@@ -378,7 +378,7 @@ def clear_temp():
     tf.keras.backend.clear_session()
 
 
-def training(model, train_dataset, test_dataset, batch_size, callbacks_list):
+def training(model, train_dataset, test_dataset, batch_size, callbacks_list, epochs=3):
     """Trains a machine learning model.
 
     This function trains the provided `model` on the `train_dataset` with a batch size of
@@ -399,7 +399,7 @@ def training(model, train_dataset, test_dataset, batch_size, callbacks_list):
     loss_history = model.fit(
         train_dataset,
         batch_size=batch_size,
-        epochs=3,
+        epochs=epochs,
         validation_data=test_dataset,
         callbacks=callbacks_list,
     )
@@ -664,7 +664,7 @@ def train_seg_model(
     clear_temp()
 
     print("[INFO] Training model")
-    history = training(model, train_dataset, test_dataset, batch_size, callbacks_list)
+    history = training(model, train_dataset, test_dataset, batch_size, callbacks_list, epochs=40)
 
     model_save_filepath = save_path / model_save_name
     print(f"[INFO] Model save as: {model_save_filepath}")
