@@ -14,7 +14,7 @@ Navbar()
 
 
 titre_text = """
-# Analyse en composante principale:
+# Analyse en composantes principales
 
 Une ACP a été réalisé afin de poursuivre l'exploration des données pour identifier un éventuel biais, mais également réaliser un premier essai de classification pour déterminer le type de modèle à utiliser.
 
@@ -77,7 +77,7 @@ num_components = st.slider(
     "Choisissez le nombre de composantes principales à afficher",
     min_value=1,
     max_value=pca_var.shape[0],  # Nombre maximum de composantes dans pca_var
-    value=pca_var.shape[0]/2,  # Valeur par défaut
+    value=int(pca_var.shape[0]/2),  # Valeur par défaut
     step=1
 )
 
