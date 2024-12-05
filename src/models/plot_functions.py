@@ -242,7 +242,6 @@ def make_gradcam_heatmap(img_array, model, last_conv_layer_name, pred_index=None
 
 
 def overlay_heatmap_on_array(heatmap, img_array, alpha=0.4):
-    print(img_array.shape)
     img = img_array #[0, :, :, 0]  # select only 1
 
     #heatmap = heatmap.reshape((heatmap.shape[0], heatmap.shape[1], 1))

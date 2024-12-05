@@ -252,28 +252,26 @@ def loading_dataset(data_dir, batch_size, seed=42):
         print("Invalid Input")
 
 
-def load_file(fpath):
+def load_file(fpath, target_size=(224,224)):
     """Function for loading a file as a generator for model prediciton
     """
     img = cv2.imread(fpath)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     # re-size for model
-    target_size = (224,224)
     img = cv2.resize(img, dsize=target_size)
 
-    img = np.array(img).reshape(1, 224, 224, 3)
+    img = np.array(img).reshape(1, target_size[0], target_size[1], 3)
     return img
 
 
-def load_resize_img_from_buffer(BytesIO_obj):
+def load_resize_img_from_buffer(BytesIO_obj, target_size=(224,224)):
     """Function for loading a file as a generator for model prediciton
     """
     image = Image.open(BytesIO_obj)
     img_array = np.array(image)
     img = cv2.cvtColor(img_array, cv2.COLOR_BGR2RGB)
     # re-size for model
-    target_size = (224,224)
     img = cv2.resize(img, dsize=target_size)
 
-    img = np.array(img).reshape(1, 224, 224, 3)
+    img = np.array(img).reshape(1, target_size[0], target_size[1], 3)
     return img_array, img
