@@ -11,29 +11,10 @@ import pathlib
 from modules.nav import Navbar
 Navbar()
 
-
-
 titre_text = """
 # Exploration des données:
 """
 st.markdown(titre_text)
-
-# intro_text = """
-# # Prise en main et découverte des données:
-# ## Visualisation de quelques images du dataset:
-# """
-# st.markdown(intro_text)
-# st.image("resources/decouverte_donnees/showcase.png")
-
-# text_2 = """
-# <div style="text-align: justify;">
-
-# Les images sont des radiographies pulmonaires provenant de différentes sources, on remarque rapidement que seule une partie de l'image nous intéressera puisqu'on s'intéressera aux poumons alors que l'image laisse notamment la colonne vertébrale et le cœur. Il faudra donc appliquer les masques qui ont été précalculés.
-
-# Les données sont en échelle de gris, une importation en couleur donne trois valeurs identiques pour les différents canaux. Chaque image correspond donc à une matrice de 299*299. Ci-dessous, un exemple d’image sur les trois canaux RGB.
-# </div>"""
-# st.markdown(text_2,unsafe_allow_html=True)
-# st.image("resources/decouverte_donnees/x-ray_rgb.png")
 
 text_3 = """
 <div style="text-align: justify;">
@@ -48,7 +29,7 @@ Le preprocessing suivant e sur les données :
 - Import de l'information sur l'origine de l'image dans les metadata
 - Transformation en jeu de données tabulaire
 
-Le jeu de données préprocessé utilisé pour notre étude contient 21 165 images après masquage réparties en quatre classes.
+Le jeu de données préprocessé contient 21 165 images après masquage réparties en quatre catégories.
 
 
 </div>
@@ -61,80 +42,46 @@ with open(df_small_path, 'rb') as f:
     df_small = pickle.load(f)
 
 
-#### A ameliorer pour afficher 2 images par type
-sampled_images = df_small.groupby('label').apply(lambda x: x.sample(n=2)).reset_index(drop=True)
-#sampled_images = df_small.sample(n=8) 
+#### Sélection de 2 images par type
+sampled_images = df_small.groupby('label').apply(lambda x: x.sample(n=2, random_state=42)).reset_index(drop=True)
 
-# Afficher le dataframe avec un bouton 
+# Afficher le dataframe en cliquant sur un bouton 
 if st.button("Afficher le jeu de données"):
-    # Si le bouton est cliqué, afficher le jeu de données
     st.write(sampled_images)
 
 vis_text = """
 ## Visualisation d'un échantillon d'images 
 """
 st.markdown(vis_text)
-#st.image("resources/decouverte_donnees/showcase.png")
-
-
-# Sélectionner 8 images au hasard
 
 cols = st.columns(4)
 
-#### Si possible rendre fonctionnel l affichage apres centrage
-
 show_centered_images = st.checkbox("Augmenter le contraste et la saturation")
 
-# Répartir les images sur 3 colonnes, 2 images par colonne
+new_images = st.checkbox("Afficher de nouvelles images")
+if new_images:
+    sampled_images = df_small.groupby('label').apply(lambda x: x.sample(n=2)).reset_index(drop=True)
+
+# Répartir les images sur 4 colonnes
 for i, (index, row) in enumerate(sampled_images.iterrows()):
     col_index = i % 4 
-
     img_array = row['image']
-
     if show_centered_images:
         img = img_array.reshape(256, 256)
         img = Image.fromarray(img)
         img = img.convert('L')
         # Augmenter le contraste de l'image
         enhancer = ImageEnhance.Contrast(img)
-        img = enhancer.enhance(1.5)  # Augmenter le contraste par un facteur de 2
-        # Changer la colorimétrie (ex. augmenter la saturation)
+        img = enhancer.enhance(1.5) 
+        # Agmenter la saturation
         enhancer = ImageEnhance.Color(img)
-        img_rgb = enhancer.enhance(1.2)
+        img = enhancer.enhance(1.2)
         cols[col_index].image(img, caption=f'{row["nom"]}')
     else:
         img = img_array.reshape(256, 256)
         img = Image.fromarray(img)
         img = img.convert('L')
         cols[col_index].image(img, caption=f'{row["nom"]}')
-
-#st.image("resources/decouverte_donnees/table.png")
-
-# text_4 = """
-# <div style="text-align: justify;">
-
-# ## Statistiques descriptives sur les données
-# ### Répartition des données par catégorie
-
-# La première analyse réalisée est une visualisation du nombre d'images par catégorie. 
-# </div>
-# """
-# st.markdown(text_4, unsafe_allow_html=True)
-# st.image("resources/decouverte_donnees/barplot_disease.png")
-
-# text_5 = """
-# <div style="text-align: justify;">
-
-# On observe que nous n’avons majoritairement des données de radio pulmonaires pour les patients ne présentant pas d’affection. Les données de pneumonie virales sont quant à elles minoritaires.
-
-# ### Répartition des données par source et par catégorie.
-
-# Les images proviennent de plusieurs sources différentes. On cherche à visualiser la répartition des catégories par groupe afin d’identifier un éventuel biais.
-
-# </div>
-# """
-# st.markdown(text_5, unsafe_allow_html=True)
-# st.image("resources/decouverte_donnees/data_origin.png")
 
 text_6 = """
 <div style="text-align: justify;">
@@ -147,9 +94,8 @@ Le tableau et les boites de dispersion suivantes résument les différences obse
 """
 
 st.markdown(text_6, unsafe_allow_html=True)
-#st.image("resources/decouverte_donnees/boxplot.png")
 
-# Charger le dataset contenant uniquement label, source, moyenne et std par image
+# Charger le dataset contenant uniquement label et les statistiques basiques par image
 @st.cache_data
 def load_data():
     df_mean_std_path = pathlib.Path('resources/df_mean_std.pkl')
@@ -159,13 +105,10 @@ def load_data():
 # Charger les données
 df_mean_std = load_data()
 
-
 # Demander à l'utilisateur sur quoi il veut se baser pour faire le countplot
 options = ['Label', 'Source']
 selection = st.selectbox("Choisir l'information à utiliser pour les boites de dispersion ", options)
 
-
-##### A ameliorer pour afficher aussi min et max mais il faut reprendre le dataset
 if selection == 'Label':
     result = df_mean_std.groupby('label').agg(Moyenne=('mean_pixel', 'mean'), EcartType=('std_pixel', 'mean'), Minimum=('min_pixel', 'mean'), Maximum=('max_pixel', 'mean'),  Mediane=('median_pixel', 'mean'))
 if selection == 'Source':
@@ -176,12 +119,11 @@ st.write(result)
 if selection == 'Label':
     fig = px.box(df_mean_std, x='label', y='mean_pixel', color='label', title="Distribution de la valeur moyenne des pixels par image et par Label", labels={'label': 'Label'})
 if selection == 'Source':
-    fig = px.histogram(df_mean_std, x='source', y='mean_pixel', color='source', title="Distribution de la valeur moyenne des pixel par image et par Source", labels={'source': 'Source'})
+    fig = px.box(df_mean_std, x='source', y='mean_pixel', color='source', title="Distribution de la valeur moyenne des pixel par image et par Source", labels={'source': 'Source'})
 
 
 # Afficher le countplot dans Streamlit
 st.plotly_chart(fig)
-
 
 text_7 = """
 <div style="text-align: justify;">
@@ -201,21 +143,10 @@ fig1 = px.scatter(
         )  # Utilisation d'un fond sombre
 fig1.update_traces(marker=dict(size=2))
 
-
-
 # Afficher le dataframe avec un bouton 
-if st.button("Afficher le graphique de l'écart type en fonction de la moyenne pour l'ensemble du jeu de données"):
+if st.button("Afficher le graphique de l'écart type en fonction de la moyenne"):
     # Si le bouton est cliqué, afficher le jeu de données
     st.plotly_chart(fig1)
-
-### A améliorer pour demander si on veut plus d'info et idealement conserver les couleurs entre les deux graphs.
-
-text_8 = """
-<div style="text-align: justify;">
-Le graphique ci-dessous permet de visualiser les catégories une par une pour améliorer la lisibilté
-</div>
-"""
-#st.markdown(text_8, unsafe_allow_html=True)
 
 
 # Créer le graphique avec Plotly Express
@@ -230,29 +161,8 @@ def create_plot(label):
     fig.update_traces(marker=dict(size=3))
     return fig
 
-# # Récupérer tous les labels uniques
-# labels = df_mean_std['label'].unique()
-
-# # Initialiser l'index du label actuel dans la session
-# if 'label_index' not in st.session_state:
-#     st.session_state.label_index = 0  # Commencer avec le premier label
-
-# Afficher le graphique pour le label actuel
-# current_label = labels[st.session_state.label_index]
-# Boutons pour naviguer entre les labels
-# col1, col2 = st.columns(2)
-# with col1:
-#     if st.button('Précédent'):
-#         # Mettre à jour l'index pour revenir au label précédent
-#         st.session_state.label_index = (st.session_state.label_index - 1) % len(labels)
-
-# with col2:
-#     if st.button('Suivant'):
-#         # Mettre à jour l'index pour passer au label suivant
-#         st.session_state.label_index = (st.session_state.label_index + 1) % len(labels)
-
 # Afficher le dataframe avec un bouton 
-label = st.selectbox("Afficher le graphique pour une seule catégorie pour plus de lisibilité ?", 
+label = st.selectbox("Afficher le graphique de l'écart-type en fonction de la moyenne pour une seule catégorie pour plus de lisibilité ?", 
                      options=["Aucune sélection"] + list(df_mean_std['label'].unique()), 
                      index=0)  # "Aucune sélection" sera la première option
 
@@ -264,20 +174,17 @@ if label != "Aucune sélection":
     # Afficher le graphique
     st.plotly_chart(fig2)
 
-# st.image("resources/decouverte_donnees/relplot.png")
-
-# st.markdown("""<div style="text-align: justify;">On visualise également l’écart-type en fonction de la moyenne pour chacune des catégories.</div>""", unsafe_allow_html=True)
-# st.image("resources/decouverte_donnees/dispersion.png")
-
+#
 text_8 = """
 <div style="text-align: justify;">
 
-Dans les deux représentations, on remarque que les valeurs des pixels diffèrent en fonction des catégories. Les données semblent également plus dispersées pour les catégories COVID et Lung Opacity.
+Dans les deux représentations, on remarque que les valeurs des pixels diffèrent en fonction des catégories et des sources de données. 
+Les données semblent plus dispersées pour les catégories COVID et Lung Opacity.
 Les valeurs sont en moyenne plus élevées pour les catégories COVID et Viral Pneumonia.
 
 ## Images moyennes par type et par source
 
-Pour aller plus loin, on peut tracer l’image moyenne par groupe*source de données.
+Pour aller plus loin, on peut tracer l’image moyenne par groupe en fonction de la source de données.
 </div>
 """
 st.markdown(text_8, unsafe_allow_html=True)
@@ -288,27 +195,26 @@ with open(df_avg_img_path, 'rb') as g:
     df_avg_img = pickle.load(g)
 
 
+cols2 = st.columns(5)
 
-# Afficher le dataframe avec un bouton 
-if st.button("Afficher les images moyennes par source"):
-    # Si le bouton est cliqué, afficher le jeu de données
-    cols2 = st.columns(5)
+    # Répartir les images sur 5 colonnes
+for i, (index, row) in enumerate(df_avg_img.iterrows()):
+    col_index = i % 5 
 
-    # Ameliorer la visuatlisation des images et la mise en page
+    img_array = row['image']
 
-    # Répartir les images sur 3 colonnes, 2 images par colonne
-    for i, (index, row) in enumerate(df_avg_img.iterrows()):
-        col_index = i % 5 
-
-        img_array = row['image']
-
-        img = img_array.reshape(256, 256)
-        img = Image.fromarray(img)
-        img = img.convert('RGB')
-        cols2[col_index].image(img, caption=f'{row["label_source"]}')
-
-
-#st.image("resources/decouverte_donnees/mean.png")
+    img = img_array.reshape(256, 256)
+    img = Image.fromarray(img)
+    img = img.convert('L')
+    enhancer = ImageEnhance.Contrast(img)
+    img = enhancer.enhance(1.5) 
+        # Agmenter la saturation
+    enhancer = ImageEnhance.Color(img)
+    img = enhancer.enhance(1.2)
+    # Pour résoudre le problème d'alignement on diminue la longueur
+    short_caption = row["label_source"][:17]
+    cols2[col_index].image(img, caption=f'{short_caption}')
+    #cols2[col_index].image(img, caption=f'{[row["label_source"]]}')
 
 text_9 = """
 <div style="text-align: justify;">
@@ -316,10 +222,10 @@ text_9 = """
 ### Interprétation
 
 Il semble y avoir un biais sur les radiographie pulmonaires liées à la pneumonie virale : le cœur est proportionnellement plus important et l’application du masque efface la partie inférieure du poumon gauche. 
-Les données étiquetées comme normale de la source "-chestxray” ne semble pas présenter cette déformation.
+En revanche, les données étiquetées comme normale de la source "pneumonia-chestxray” ne semble pas présenter cette déformation.
 
-Sans certitude, on émet l’hypothèse que les données associés à la pneumonie virale sont des radiographies pulmonaires d’enfants.
+On émet l’hypothèse que les données associés à la pneumonie sont des radiographies d’enfants.
 
-Un biais risque donc d'être présent dans la modélisation de cette catégorie.
+Un biais risque donc d'être présent dans la modélisation de la catégorie Viral Pneumonia.
 """
 st.markdown(text_9, unsafe_allow_html=True)

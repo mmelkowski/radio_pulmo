@@ -1,7 +1,7 @@
 import streamlit as st
 import pickle
 import matplotlib.pyplot as plt
-from PIL import Image
+from PIL import Image, ImageEnhance
 import numpy as np
 import plotly.express as px
 import pandas as pd
@@ -35,7 +35,6 @@ La figure ci-dessous donne la variance cumulée en fonction du nombre de composa
 """
 st.markdown(text_1, unsafe_allow_html=True)
 
-
 # Charger le dataset contenant uniquement label, source, moyenne et std par image
 @st.cache_data
 def load_data():
@@ -47,7 +46,6 @@ def load_data():
 pca_var = load_data()
 
 def plot_var(pca_var, i):
-    # Vérifier que l'indice i est dans les limites de explained_variance
         
     pca_var = pca_var.head(i)
 
@@ -79,8 +77,8 @@ num_components = st.slider(
     "Choisissez le nombre de composantes principales à afficher",
     min_value=1,
     max_value=pca_var.shape[0],  # Nombre maximum de composantes dans pca_var
-    value=10,  # Valeur par défaut
-    step=2
+    value=pca_var.shape[0]/2,  # Valeur par défaut
+    step=1
 )
 
 fig = plot_var(pca_var, num_components)
@@ -92,7 +90,7 @@ st.plotly_chart(fig)
 text_10 = """
 <div style="text-align: justify;">
 
-### Visualisation des images sur les composantes de l’ACP
+### Répartition des images sur les composantes de l’ACP
 </div>
 """
 
@@ -109,7 +107,6 @@ def load_data():
 # Charger les données
 pca_df = load_data()
 
-#nb_composante=[f'PC{i+1}' for i in range(pca_df.shape[1]-3)]
 
 # Choisir les 2 ou 3 composantes à afficher
 st.sidebar.title("Choix des composantes")
@@ -119,13 +116,6 @@ PCA_choice = st.multiselect(
     default=[0, 1, 2], 
     max_selections=3
 )
-
-# # # Vérifier si l'utilisateur a sélectionné des composantes
-# if PCA_choice:
-#     selected_comps = [f"PC{i+1}" for i in PCA_choice]
-#     st.write("Composantes choisies :", selected_comps)
-# else:  
-#     st.write("Aucune composante sélectionnée. Veuillez en choisir au moins une.")
 
 # Demander à l'utilisateur sur quoi il veut se baser pour faire le countplot
 options = ['label', 'source']
@@ -171,21 +161,38 @@ fig = plot_pca(PCA_choice, supp)
 st.plotly_chart(fig)
 
 
+# Afficher le dataframe avec un bouton 
+if st.button("Afficher les images de composantes de l'ACP"):
+    # Ouvrir le dataframe
+    pca_mean_img_path = pathlib.Path('resources/pca_mean_image.pkl')
+    with open(pca_mean_img_path, 'rb') as g:
+        pca_avg_img = pickle.load(g)
+
+    #st.image(Image.fromarray(np.clip(pca_avg_img.iloc[0].values.reshape(256, 256) * 255, 0, 255).astype(np.uint8)), caption="Image Exemple")
+    cols3 = st.columns(5)
+
+        # Répartir les images sur 5 colonnes
+    for i, (index, row) in enumerate(pca_avg_img.iterrows()):
+        col_index = i % 5 
+
+        img_array = row.values[:]
+        img_array = img_array / np.mean(img_array) * 127
+
+        img = img_array.reshape(256, 256)
+        img = np.clip(img, 0, 255)
+        img = Image.fromarray(img.astype(np.uint8))
+        img = img.convert('L')
+        # enhancer = ImageEnhance.Contrast(img)
+        # img = enhancer.enhance(1.5) 
+        # # Augmenter la saturation
+        # enhancer = ImageEnhance.Color(img)
+        # img = enhancer.enhance(1.2)
+        # Pour résoudre le problème d'alignement on diminue la longueur
+        short_caption = "PCA" + str(i)
+        cols3[col_index].image(img, caption=f'{short_caption}')
+        #cols3[col_index].image(img, caption=f'{[row["label_source"]]}')
 
 
-# PCA_choice = st.radio(
-#     "**Choix des composantes de l'ACP:**",
-#     ["PCA1 - PCA2", "PCA3 - PCA4"]
-# )
-
-# if PCA_choice == "PCA1 - PCA2":
-#     st.markdown("""<div style="text-align: justify;">On visualise les coordonnées des échantillons sur les plans 1 et 2 pour voir s'il est possible de séparer les catégories selon un plan. On étudie également la répartition par source de données pour identifier une éventuelle source de biais. :</div>""", unsafe_allow_html=True)
-#     st.image("resources/decouverte_donnees/ACP/ACP_1.png")
-#     st.image("resources/decouverte_donnees/ACP/ACP_2.png")
-# else:
-#     st.markdown("""<div style="text-align: justify;">On visualise les coordonnées des échantillons sur les plans 3 et 4 pour voir s'il est possible de séparer les catégories selon un plan. On étudie également la répartition par source de données pour identifier une éventuelle source de biais. :</div>""", unsafe_allow_html=True)
-#     st.image("resources/decouverte_donnees/ACP/ACP_3.png")
-#     st.image("resources/decouverte_donnees/ACP/ACP_4.png")
 
 text_11 = """
 <div style="text-align: justify;">
@@ -193,11 +200,10 @@ text_11 = """
 
 ### Interprétation
 
-Les axes ne permettent pas de séparer les échantillons par groupe, et on identifie pas de sous-population en fonction de la source de données. 
-L’orientation, le niveau de zoom et la taille des poumons diffèrent selon les patients et les radiographies ce qui peut expliquer pourquoi 
-il est difficile de distinguer les classes avec l'analyse en composantes principales. 
+Les composantes de l'ACP ne permettent pas de séparer les échantillons par groupe, et on identifie pas de sous-population en fonction de la source de données. 
+Cette difficulté peut s'expliquer car l'orientation, le niveau de zoom et la taille des poumons diffèrent selon les patients et les radiographies.
 
-On ne constate donc pas de solution évidente à notre problème de classification avec une séparation dans un plan ce qui suggère que des modèles de classification classiques ne sont pas adaptés. 
+On ne constate donc pas de solution évidente à notre problème de classification avec une séparation dans un plan. Ceci suggère que des modèles de classification classiques ne seront pas adaptés. 
 Des solutions plus complexes pouvant prendre en compte un grand nombre de features comme le deep-learning seront donc à mettre en œuvre.
 
 </div>
