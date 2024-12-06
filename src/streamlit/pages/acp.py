@@ -14,14 +14,18 @@ Navbar()
 
 
 titre_text = """
+<div style="text-align: justify;">
+
 # Analyse en composantes principales
 
 Une ACP a été réalisé afin de poursuivre l'exploration des données pour identifier un éventuel biais, mais également réaliser un premier essai de classification pour déterminer le type de modèle à utiliser.
 
+</div>
 """
-st.markdown(titre_text)
+st.markdown(titre_text, unsafe_allow_html=True)
 
 text_1 = """
+<div style="text-align: justify;">
 
 ### Part de variance expliquée par les composantes de l’ACP
 
@@ -91,6 +95,7 @@ text_10 = """
 <div style="text-align: justify;">
 
 ### Répartition des images sur les composantes de l’ACP
+
 </div>
 """
 
@@ -187,7 +192,6 @@ if affichage_image == "Oui":
         ax.set_title(f'Composant PCA {i+1}') 
         ax.axis('off')
     st.pyplot(fig4)
-
 
 
 text_11 = """

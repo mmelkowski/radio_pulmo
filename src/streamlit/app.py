@@ -16,21 +16,19 @@ sys.path.insert(0, str(path))
 ## clean for reloading scriptwithout spamming sys.path insert
 sys.path = list(dict.fromkeys(sys.path))
 
-from model_functions import load_model, keras_predict_model, get_predict_value
-from seg_predict_model import scale_image, mask_generation, apply_mask
 from data_functions import load_resize_img_from_buffer
-from plot_functions import make_gradcam_heatmap, overlay_heatmap_on_array
 
 # import custom streamlit script
 from modules.nav import Navbar
 from modules.img_functions import convert_array_to_PIL, convert_PIL_to_io
+from modules.actions_functions import action_prediction, action_visualization, action_masking
 
 
 # App config:
 model_save_path="../../models/EfficientNetB4_masked-Covid-19_masked-91.45.keras"
 seg_model_save_path="../../models/cxr_reg_segmentation.best.keras"
-cmap = cm.viridis
 
+# Streamlit app page
 Navbar()
 
 st.title("Application de classification de Radiographie Pulmonaire")
@@ -67,7 +65,7 @@ if uploaded_file is not None:
 
         img_original_array, img = load_resize_img_from_buffer(uploaded_file, target_size=(224,224))
 
-        st.image(img, caption="Image loaded after re-sizing", use_container_width=False)
+        st.image(img, caption="Image chargé après redimensionnement", use_container_width=False)
 
         action_required = st.selectbox("Voulez vous prédire, masquer ou visualiser (Grad-CAM) l'image ?",
                                        ("Prédire", "Masquer", "Visualiser"))
@@ -80,27 +78,9 @@ if uploaded_file is not None:
             left, middle, right = st.columns(3)
             if middle.button("Démarrer la prediction", icon="🚀"):
                 with st.status("Prediction en cours...", expanded=True):
-
-                    if not masked_value:
-                        st.write("Masquage à faire...")
-                        st.write("Chargement du model de segmentation...")
-                        # load model
-                        seg_model = load_model(seg_model_save_path)
-
-
-                    st.write("Chargement du model de prediction...")
-                    # load model
-                    model = load_model(model_save_path)
-
-                    # make predict
-                    st.write("Prédiction...")
-                    pred = keras_predict_model(model, img)
-
-                    # Interpret prediction
-                    st.write("Interpretation...")
-                    pred = get_predict_value(pred)
-
-                    st.write("Prédiction finie.")
+                    pred = action_prediction(model_save_path, img, 
+                                             masked_value=masked_value, 
+                                             seg_model_save_path="../../models/cxr_reg_segmentation.best.keras")
 
                 st.success("Prédiction effectuée")
 
@@ -112,23 +92,12 @@ if uploaded_file is not None:
                                       ("stem_conv", "block4f_expand_conv", "top_conv"))
 
             left, middle, right = st.columns(3)
-            if middle.button("Démarrer la visualisation", icon="🚀"):
-
+            if middle.button("Démarrer la visualisation", icon="🔍"):
+                
                 with st.status("Visualisation en cours...", expanded=True):
+                    heatmap, overlay = action_visualization(model_save_path, img, img_original_array, layer_name)
 
-                    st.write("Chargement du model...")
-                    # Load model
-                    model = load_model(model_save_path)
-                    efficientnet = model.get_layer("efficientnetb4")
-
-                    st.write("Création de l'overlay...")
-                    # Make gradcam
-                    heatmap = make_gradcam_heatmap(img, efficientnet, layer_name)
-
-                    # Overlay the heatmap on the original image
-                    overlay = overlay_heatmap_on_array(heatmap, img_original_array, alpha=0.4)
-
-                    st.write("Grad-CAM fini.")
+                st.success("Visualisation effectuée")
 
                 # Display image
                 heatmap_PIL = convert_array_to_PIL(heatmap)
@@ -137,11 +106,12 @@ if uploaded_file is not None:
                 left_img.image(overlay_PIL, caption="Grad-CAM Applied", use_container_width=False)
                 right_img.image(heatmap_PIL, caption="Heatmap generated", use_container_width=False)
 
-                # Download
+                # Convert for buffering
                 left_d, right_d = st.columns(2)
                 io_heatmap = convert_PIL_to_io(heatmap_PIL, img_format="PNG")
                 io_overlay = convert_PIL_to_io(overlay_PIL, img_format="PNG")
 
+                # Download
                 left_d.download_button(
                     label="Download Grad-CAM",
                     data=io_overlay,
@@ -156,25 +126,15 @@ if uploaded_file is not None:
                     )
 
         elif action_required == "Masquer":
-            if st.button("Démarrer le masquage", icon="🚀"):
+            if st.button("Démarrer le masquage", icon="👺"):
                 with st.status("Masquage en cours...", expanded=True):
-                    # load model 
-                    st.write("Chargement du model...")
-                    model_seg = load_model(seg_model_save_path)
+                    mask, masked_img = action_masking(seg_model_save_path, img_original_array)
 
-                    # masking
-                    st.write("Masquage...")
-
-                    img_to_mask = cv2.resize(img_original_array, dsize=(256, 256))
-                    img_to_mask = scale_image(img_to_mask)
-                    img_to_mask = np.array(img_to_mask).reshape(1, 256, 256, 1)
-                    mask = mask_generation(model_seg, img_to_mask)
-                    mask = np.array(mask).reshape(256, 256)
-                    masked_img = apply_mask(img_original_array, mask, resize=True, width=img_original_array.shape[0], height=img_original_array.shape[1])
+                st.success("Masquage effectué")
 
                 left_img, right_img = st.columns(2)
-                left_img.image(masked_img, caption="masked_img", use_container_width=False)
-                right_img.image(mask, caption="mask", use_container_width=False, clamp=True)
+                left_img.image(masked_img, caption="Image masqué", use_container_width=False)
+                right_img.image(mask, caption="Masque", use_container_width=False, clamp=True)
 
     elif f_type == "zip":
         # si zip prediction sur folder, retour que d'un df avec name / prediction

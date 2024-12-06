@@ -12,20 +12,25 @@ st.title("Contexte du projet")
 
 
 avant_propos_text = """
+<div style="text-align: justify;">
+
 ## Avant Propos : 
 Ce travail a été réalisé par [Chris Hozé](https://www.linkedin.com/in/chris-hozé-007901a5) et [Mickaël Melkowski](https://www.linkedin.com/in/mickael-melkowski/) dans le cadre de notre formation DataScientist réalisée de Septembre à Décembre 2024 avec DataScientest.
 
 L'objectif de notre étude est de développer un modèle pour classifier les radiographies pulmonaires.
 
 L'ensemble du code, les notebooks d'exploration et les modèles sont disponibles sur le dépot [github](https://github.com/mmelkowski/radio_pulmo/) 
+
+</div>
 """
 st.markdown(avant_propos_text, unsafe_allow_html=True)
 
 
 context_text = """
-## Jeu de données :
- 
 <div style="text-align: justify;">
+
+## Jeu de données :
+
 Une équipe de chercheurs d'universités du Moyen Orient et Asie ont assemblé un jeu de données de radiographie du thorax pour des patients, sain, atteint du  Covid, de pneumonie et d'opacité pulmonaire.
 
 Ce [dataset](https://www.kaggle.com/datasets/tawsifurrahman/covid19-radiography-database) a été constitué dans le but de développer un diagnostic automatisé du Covid-19 par radiographie pulmonaire plutôt que par RT-PCR.
@@ -33,14 +38,14 @@ Les seules métadonnées disponibles concernent l’origine des radiographies. A
 
 Chaque image est fournie avec un masque pré-calculé, généré par apprentissage semi-automatique. L'application du masque permet d'isoler les pixels liés aux poumons et ainsi de réduire la zone ciblée, concentrant l'analyse sur la partie pertinente de l'image.
 
-Un exemple d'image, de masque et de radiographie après masquage est présenté ci-dessous : 
+Un exemple d'image, de masque et de radiographie après masquage est présenté ci-dessous :
 </div>"""
+
 st.markdown(context_text, unsafe_allow_html=True)
 
 st.image("resources/intro/mask_process.png")
 
-
-source_tooltip = """Les sources des images ont été recodées de la façon suivante.
+source_tooltip = """Les sources des images ont été recodées de la façon suivante:
 
     https://www.kaggle.com/c/rsna-pneumonia-detection-challenge/data : rnsa
 
@@ -62,6 +67,7 @@ source_tooltip = """Les sources des images ont été recodées de la façon suiv
 
 count_text = """
 <div style="text-align: justify;">
+
 4 catégories d'images sont présentes dans le jeu de données, le graphique ci-dessous indique la répartition des images par catégorie et par source :
 
 </div>"""

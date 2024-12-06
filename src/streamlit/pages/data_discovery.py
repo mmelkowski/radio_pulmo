@@ -21,7 +21,7 @@ text_3 = """
 
 ## Pre-processing des données
 
-Le preprocessing suivant e sur les données : 
+Le preprocessing suivante sur les données : 
 
 - Import des images et des masques depuis les répertoire liés à la catégorie et au type
 - Redimensionnement du masque et de l'image en 256x256
