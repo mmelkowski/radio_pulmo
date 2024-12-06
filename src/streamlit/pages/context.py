@@ -6,6 +6,7 @@ import plotly.express as px
 
 # import custom Navigation bar
 from modules.nav import Navbar
+
 Navbar()
 
 st.title("Contexte du projet")
@@ -77,26 +78,46 @@ st.markdown(count_text, unsafe_allow_html=True, help=source_tooltip)
 # Charger le dataset contenant uniquement label, source, moyenne et std par image
 @st.cache_data
 def load_data():
-    df = pd.read_pickle('resources/df_mean_std.pkl')
+    df = pd.read_pickle("resources/df_mean_std.pkl")
     return df
+
 
 # Charger les données
 df_mean_std = load_data()
 
 
 # Demander à l'utilisateur sur quoi il veut se baser pour faire le countplot
-options = ['Label', 'Source', 'Label & Source']
-selection = st.selectbox("Choisir l'information à utiliser pour la répartition ", options)
+options = ["Label", "Source", "Label & Source"]
+selection = st.selectbox(
+    "Choisir l'information à utiliser pour la répartition ", options
+)
 
 
 # Créer le countplot avec Plotly Express
-if selection == 'Label':
-    fig = px.histogram(df_mean_std, x='label', color='label', title="Nombre d'images par Label", labels={'label': 'Label'})
-elif selection == 'Source':
-    fig = px.histogram(df_mean_std, x='source', color='label', title="Nombre d'images par Source", labels={'source': 'Source'})
+if selection == "Label":
+    fig = px.histogram(
+        df_mean_std,
+        x="label",
+        color="label",
+        title="Nombre d'images par Label",
+        labels={"label": "Label"},
+    )
+elif selection == "Source":
+    fig = px.histogram(
+        df_mean_std,
+        x="source",
+        color="label",
+        title="Nombre d'images par Source",
+        labels={"source": "Source"},
+    )
 else:  # 'Label & Source'
-    fig = px.histogram(df_mean_std, x='label', color='source', title="Nombre d'images par Label et Source",
-                        labels={'label': 'Label', 'source': 'Source'})
+    fig = px.histogram(
+        df_mean_std,
+        x="label",
+        color="source",
+        title="Nombre d'images par Label et Source",
+        labels={"label": "Label", "source": "Source"},
+    )
 
 # Afficher le countplot dans Streamlit
 st.plotly_chart(fig)

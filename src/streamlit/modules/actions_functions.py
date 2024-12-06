@@ -24,14 +24,18 @@ from plot_functions import make_gradcam_heatmap, overlay_heatmap_on_array
 from modules.img_functions import convert_array_to_PIL, convert_PIL_to_io
 
 
-def action_prediction(model_save_path, img, masked_value=False, 
-                      seg_model_save_path="../../../models/cxr_reg_segmentation.best.keras"):
+def action_prediction(
+    model_save_path,
+    img,
+    masked_value=False,
+    seg_model_save_path="../../../models/cxr_reg_segmentation.best.keras",
+):
     if not masked_value:
         st.write("👺 Masquage à faire...")
         # Remove first dimension to keep: heigth, width, channels
         img = np.array(img).reshape(img.shape[1], img.shape[2], img.shape[3])
         if img.shape[2] != 1:
-            img = img[:,:,0]
+            img = img[:, :, 0]
         mask, masked_img = action_masking(seg_model_save_path, img)
 
         # re-size masked_img to prediction model target size
@@ -55,7 +59,6 @@ def action_prediction(model_save_path, img, masked_value=False,
     return pred
 
 
-
 def action_visualization(model_save_path, img, img_original_array, layer_name):
     # Load model
     st.write("⏳ Chargement du model...")
@@ -73,7 +76,7 @@ def action_visualization(model_save_path, img, img_original_array, layer_name):
 
 
 def action_masking(seg_model_save_path, img_original_array):
-    # load model 
+    # load model
     st.write("⏳ Chargement du model de masquage...")
     model_seg = load_model(seg_model_save_path)
 
@@ -87,7 +90,12 @@ def action_masking(seg_model_save_path, img_original_array):
     mask = np.array(mask).reshape(256, 256)
 
     st.write("✂️ Masquage...")
-    
-    masked_img = apply_mask(img_original_array, mask, resize=True, width=img_original_array.shape[0], height=img_original_array.shape[1])
+
+    masked_img = apply_mask(
+        img_original_array,
+        mask,
+        resize=True,
+        width=img_original_array.shape[0],
+        height=img_original_array.shape[1],
+    )
     return mask, masked_img
-    

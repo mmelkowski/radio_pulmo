@@ -9,6 +9,7 @@ import pathlib
 
 # import custom Navigation bar
 from modules.nav import Navbar
+
 Navbar()
 
 
@@ -37,22 +38,22 @@ Un modèle de deep-learning a été dévéloppé à partir de notre jeu de donn�
 
 </div>
 """
-st.markdown(header_text,unsafe_allow_html=True)
-adaptedENB4_path = pathlib.Path('resources/modelisation/Adapted_ENB4.png')
+st.markdown(header_text, unsafe_allow_html=True)
+adaptedENB4_path = pathlib.Path("resources/modelisation/Adapted_ENB4.png")
 st.image(str(adaptedENB4_path))
 
-# Afficher le dataframe avec un bouton 
+# Afficher le dataframe avec un bouton
 if st.button("Afficher le détail de l'architecture EfficientNetB4"):
     # Si le bouton est cliqué, afficher le jeu de données
-    detailsENB4_path = pathlib.Path('resources/modelisation/Details_EfficientNetB4.png')
-    
+    detailsENB4_path = pathlib.Path("resources/modelisation/Details_EfficientNetB4.png")
+
     textEN = """
     Le modèle EfficientNetB4 se décompose en sept grand blocs, composés de sous-blocs eux-même composé de modules.
     Chaque module comprends une combinaison de multiplication, de convolution et d'élimination (drop-out).
     L'illustration ci-dessous est reprise d'une adaptation de Vardan Agarwal disponible [ici](https://towardsdatascience.com/complete-architectural-details-of-all-efficientnet-models-5fd5b736142).
     Le modèle est décrit dans l'[article](https://arxiv.org/abs/1905.11946) et implémenté dans Keras.
     """
-    st.markdown(textEN,unsafe_allow_html=True)
+    st.markdown(textEN, unsafe_allow_html=True)
     st.image(str(detailsENB4_path))
 
 text1 = """
@@ -65,36 +66,43 @@ text1 = """
  La précision moyenne du modèle sur le jeu de données de validation est de 0.92 avec une précision de 0.93 et un recall de 0.90 sur la catégorie COVID qui nous intéresse particulièrement.
 </div>
 """
-st.markdown(text1,unsafe_allow_html=True)
+st.markdown(text1, unsafe_allow_html=True)
 
 # Afficher le graph d'évolution de la loss et de l'accuracy
-Loss_Accuracy_path = pathlib.Path('resources/modelisation/Loss_Accuracy.png')
+Loss_Accuracy_path = pathlib.Path("resources/modelisation/Loss_Accuracy.png")
 st.image(str(Loss_Accuracy_path))
 
 
 # Afficher la matrice de confusion
-Confusion_path = pathlib.Path('resources/modelisation/Confusion_Matrix.png')
+Confusion_path = pathlib.Path("resources/modelisation/Confusion_Matrix.png")
 st.image(str(Confusion_path))
 
 # Afficher le rapport de classification
 
 data_report = {
-    'Class': ['COVID', 'Lung_Opacity', 'Normal', 'Viral_Pneumonia', 'accuracy', 'macro avg', 'weighted avg'],
-    'Precision': [0.93, 0.93, 0.90, 0.98, '', 0.94, 0.92],
-    'Recall': [0.90, 0.84, 0.97, 0.94, 0.92, 0.91, 0.92],
-    'F1-Score': [0.91, 0.88, 0.94, 0.96, '', 0.92, 0.92],
-    'Support': [362, 602, 1019, 134, 2117, 2117, 2117]
+    "Class": [
+        "COVID",
+        "Lung_Opacity",
+        "Normal",
+        "Viral_Pneumonia",
+        "accuracy",
+        "macro avg",
+        "weighted avg",
+    ],
+    "Precision": [0.93, 0.93, 0.90, 0.98, "", 0.94, 0.92],
+    "Recall": [0.90, 0.84, 0.97, 0.94, 0.92, 0.91, 0.92],
+    "F1-Score": [0.91, 0.88, 0.94, 0.96, "", 0.92, 0.92],
+    "Support": [362, 602, 1019, 134, 2117, 2117, 2117],
 }
 
 # Conversion en DataFrame
-df_report = pd.DataFrame(data_report).set_index('Class')
+df_report = pd.DataFrame(data_report).set_index("Class")
 
 # Affichage dans Streamlit
 
 clf_report = st.checkbox("Afficher le rapport de classification")
 if clf_report:
     st.table(df_report)
-
 
 
 text2 = """
@@ -115,8 +123,8 @@ text2 = """
  </div>
 """
 
-st.markdown(text2,unsafe_allow_html=True)
-adaptedUNET_path = pathlib.Path('resources/modelisation/Adapted_UNET.png')
+st.markdown(text2, unsafe_allow_html=True)
+adaptedUNET_path = pathlib.Path("resources/modelisation/Adapted_UNET.png")
 st.image(str(adaptedUNET_path))
 
 text3 = """
@@ -128,27 +136,29 @@ text3 = """
  La précision moyenne sur le jeu de données de test est de 0.992 ce qui confirme que nous pouvons l'utiliser pour la génération de masques à partir de nouvelles images.
 </div>
 """
-st.markdown(text3,unsafe_allow_html=True)
+st.markdown(text3, unsafe_allow_html=True)
 
 # Si le bouton est cliqué, afficher le jeu de données
-Loss_Accuracy_UNET_path = pathlib.Path('resources/modelisation/Loss_Accuracy_UNET.png')
+Loss_Accuracy_UNET_path = pathlib.Path("resources/modelisation/Loss_Accuracy_UNET.png")
 st.image(str(Loss_Accuracy_UNET_path))
 
 
 data_unet_report = {
-  'Dataset': ['Training', 'Validation', 'Test'],
-    'Sample Size': [7038, 783, 869],
-    'Pixel-wise Accuracy': [0.9958, 0.9917, 0.9918],
-    'Dice Coefficient': [0.9911, 0.9822, 0.9822],
-    'Dice Loss': [0.0089, 0.0178, 0.0178]
+    "Dataset": ["Training", "Validation", "Test"],
+    "Sample Size": [7038, 783, 869],
+    "Pixel-wise Accuracy": [0.9958, 0.9917, 0.9918],
+    "Dice Coefficient": [0.9911, 0.9822, 0.9822],
+    "Dice Loss": [0.0089, 0.0178, 0.0178],
 }
 
 # Conversion en DataFrame
-dfunet_report = pd.DataFrame(data_unet_report).set_index('Dataset')
+dfunet_report = pd.DataFrame(data_unet_report).set_index("Dataset")
 
 # Affichage dans Streamlit
 
-unet_report = st.checkbox("Afficher les métriques sur le jeu de données d'apprentissage, test et validation")
+unet_report = st.checkbox(
+    "Afficher les métriques sur le jeu de données d'apprentissage, test et validation"
+)
 if unet_report:
     st.table(dfunet_report)
 
@@ -165,4 +175,4 @@ text3 = """
  se sont avérés trop coûteux en ressources informatiques pour les équipements à notre disposition. 
 </div>
 """
-st.markdown(text3,unsafe_allow_html=True)
+st.markdown(text3, unsafe_allow_html=True)
