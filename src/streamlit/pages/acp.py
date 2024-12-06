@@ -109,7 +109,6 @@ pca_df = load_data()
 
 
 # Choisir les 2 ou 3 composantes à afficher
-st.sidebar.title("Choix des composantes")
 PCA_choice = st.multiselect(
     "Choisissez deux ou trois composantes principales à visualiser",
     options=range(pca_df.shape[1]-3), 
