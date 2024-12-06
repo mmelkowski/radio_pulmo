@@ -25,24 +25,24 @@ text_1 = """
 
 ### Part de variance expliquée par les composantes de l’ACP
 
-Il faut 874 composantes pour extraire 95 pour cent de la variance initiale.
-Avec 20 composantes, on atteint 50.2 pour cent de variance expliquée. 
-On observe donc une forte hétérogénéité.
+Il faut 874 composantes pour extraire 95% de la variance initiale.
+Le jeu de données présente donc une forte variabilité.
 
-La figure ci-dessous donne la variance cumulée en fonction du nombre de composantes. 
+On choisit donc de garder 20 composantes pour l'exploration ce qui correspond à 50% de la variance.
+
+La figure ci-dessous représente la variance cumulée en fonction du nombre de composantes. 
 
 </div>
 """
 st.markdown(text_1, unsafe_allow_html=True)
 
-# Charger le dataset contenant uniquement label, source, moyenne et std par image
-@st.cache_data
-def load_data():
-    var_pca_path = pathlib.Path('resources/pca_variance.pkl')
-    df = pd.read_pickle(var_pca_path)
-    return df
 
 # Charger les données
+@st.cache_data
+def load_data():
+    df_pca_var = pathlib.Path('resources/pca/pca_variance.pkl')
+    df = pd.read_pickle(df_pca_var)
+    return df
 pca_var = load_data()
 
 def plot_var(pca_var, i):
@@ -162,35 +162,32 @@ st.plotly_chart(fig)
 
 
 # Afficher le dataframe avec un bouton 
-if st.button("Afficher les images de composantes de l'ACP"):
-    # Ouvrir le dataframe
-    pca_mean_img_path = pathlib.Path('resources/pca_mean_image.pkl')
-    with open(pca_mean_img_path, 'rb') as g:
-        pca_avg_img = pickle.load(g)
+affichage_image = st.selectbox("Afficher les images des composantes de l'ACP ?", 
+                     options=["Non"] + ["Oui"], index=0)
 
-    #st.image(Image.fromarray(np.clip(pca_avg_img.iloc[0].values.reshape(256, 256) * 255, 0, 255).astype(np.uint8)), caption="Image Exemple")
-    cols3 = st.columns(5)
+if affichage_image == "Oui":
+    # Choisir le nombre de composantes a afficher
+    
+    num_comp = st.slider(
+        "Choisissez le nombre de composantes principales à afficher",
+        min_value=5,
+        max_value=pca_var.shape[0],  # Nombre maximum de composantes dans pca_var
+        value=int(pca_var.shape[0]/2),  # Valeur par défaut
+        step=5
+    )
+    # Charger le pickle contenant les composantes de l'acp
+    pca_path = pathlib.Path('resources/pca/pca_components.pkl')
+    with open(pca_path, 'rb') as g:
+        pca_comp = pickle.load(g)
 
-        # Répartir les images sur 5 colonnes
-    for i, (index, row) in enumerate(pca_avg_img.iterrows()):
-        col_index = i % 5 
-
-        img_array = row.values[:]
-        img_array = img_array / np.mean(img_array) * 127
-
-        img = img_array.reshape(256, 256)
-        img = np.clip(img, 0, 255)
-        img = Image.fromarray(img.astype(np.uint8))
-        img = img.convert('L')
-        # enhancer = ImageEnhance.Contrast(img)
-        # img = enhancer.enhance(1.5) 
-        # # Augmenter la saturation
-        # enhancer = ImageEnhance.Color(img)
-        # img = enhancer.enhance(1.2)
-        # Pour résoudre le problème d'alignement on diminue la longueur
-        short_caption = "PCA" + str(i)
-        cols3[col_index].image(img, caption=f'{short_caption}')
-        #cols3[col_index].image(img, caption=f'{[row["label_source"]]}')
+    num_rows = np.ceil(num_comp / 5).astype(int)
+    fig4, axes = plt.subplots(num_rows, 5, figsize=(5 * 6, num_rows * 6))
+    for i in range(num_comp): 
+        ax = axes[i // 5, i % 5] 
+        ax.imshow(pca_comp[i].reshape(256,256), cmap='gray') 
+        ax.set_title(f'Composant PCA {i+1}') 
+        ax.axis('off')
+    st.pyplot(fig4)
 
 
 

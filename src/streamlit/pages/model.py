@@ -45,9 +45,15 @@ st.image(str(adaptedENB4_path))
 if st.button("Afficher le détail de l'architecture EfficientNetB4"):
     # Si le bouton est cliqué, afficher le jeu de données
     detailsENB4_path = pathlib.Path('resources/modelisation/Details_EfficientNetB4.png')
+    
+    textEN = """
+    Le modèle EfficientNetB4 se décompose en sept grand blocs, composés de sous-blocs eux-même composé de modules.
+    Chaque module comprends une combinaison de multiplication, de convolution et d'élimination (drop-out).
+    L'illustration ci-dessous est reprise d'une adaptation de Vardan Agarwal disponible [ici](https://towardsdatascience.com/complete-architectural-details-of-all-efficientnet-models-5fd5b736142).
+    Le modèle est décrit dans l'[article](https://arxiv.org/abs/1905.11946) et implémenté dans Keras.
+    """
+    st.markdown(textEN,unsafe_allow_html=True)
     st.image(str(detailsENB4_path))
-    st.write("D'après Zhu et al., Frontiers in Medicine. 8. 10.3389/fmed.2021.626369.")
-
 
 text1 = """
 <div style="text-align: justify;">
@@ -115,7 +121,7 @@ text3 = """
  ## Conclusion
  Ces deux étapes de modélisation permettent de génerer des masques puis de diagnostiquer automatiquement des radiographies pulmonaires.
  Le modèle de segmentation a une précision supérieure à 0.99 ce qui est très satisfaisant.
- Le modèle de classification a quant à lui une précision de 0.92 ce qui est conforme à l'état de l'art.
+ Le modèle de classification a quant à lui une précision de 0.92 ce qui est conforme à l'[état de l'art](https://arxiv.org/pdf/2003.09871).
 
  Il pourrait être intéressant de tester l'efficacité de modèle de type transformers pour améliorer encore cette précision mais ils 
  se sont avérés trop coûteux en ressources informatiques pour les équipements à notre disposition. 
