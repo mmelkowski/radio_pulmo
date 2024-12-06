@@ -28,7 +28,7 @@ from modules.img_functions import convert_array_to_PIL, convert_PIL_to_io
 
 # App config:
 model_save_path="../../models/EfficientNetB4_masked-Covid-19_masked-91.45.keras"
-seg_model_save_path="../../models/unet-0.98.keras"
+seg_model_save_path="../../models/cxr_reg_segmentation.best.keras"
 cmap = cm.viridis
 
 Navbar()
