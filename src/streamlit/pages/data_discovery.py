@@ -1,8 +1,6 @@
 import streamlit as st
 import pickle
-import matplotlib.pyplot as plt
 from PIL import Image, ImageEnhance
-import numpy as np
 import plotly.express as px
 import pandas as pd
 import pathlib

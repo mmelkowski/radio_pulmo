@@ -1,11 +1,6 @@
 import streamlit as st
 import pathlib
 import sys
-import numpy as np
-import matplotlib.cm as cm
-from PIL import Image
-import io
-import cv2
 
 # To load our custom model functions
 path = pathlib.Path("../models").resolve()
@@ -85,7 +80,11 @@ if uploaded_file is not None:
         )
 
         if action_required == "Prédire":
+<<<<<<< HEAD
             help_masked_value = "Si 'Non' alors le modèle de segmentation procèdera au masquage avant la prédiction."
+=======
+            help_masked_value = "Si 'Non' alors le model de segmentation procèdera au masquage automatiquement avant la prédiction."
+>>>>>>> 0540b53 (UPDATE(streamlit): Remove Unused import.)
             masked_value = st.selectbox(
                 "Est-ce que l'image est masquée ? (*Les poumons sont isolés, on ne voit pas l'arrière-plan et les autres organes*)",
                 ("Oui", "Non"),

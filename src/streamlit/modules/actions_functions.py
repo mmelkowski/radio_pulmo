@@ -1,8 +1,5 @@
 import streamlit as st
-import io
 import numpy as np
-import matplotlib.cm as cm
-from PIL import Image
 import pathlib
 import sys
 import cv2
@@ -18,10 +15,7 @@ sys.path = list(dict.fromkeys(sys.path))
 
 from model_functions import load_model, keras_predict_model, get_predict_value
 from seg_predict_model import scale_image, mask_generation, apply_mask
-from data_functions import load_resize_img_from_buffer
 from plot_functions import make_gradcam_heatmap, overlay_heatmap_on_array
-
-from modules.img_functions import convert_array_to_PIL, convert_PIL_to_io
 
 
 def action_visualization(model_save_path, img, img_original_array, layer_name):
