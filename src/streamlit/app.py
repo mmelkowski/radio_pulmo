@@ -37,16 +37,16 @@ Navbar()
 
 st.title("Application de classification de Radiographie Pulmonaire")
 
-help_tooltip = """La prédiction est effectué par le model de deep-learning **EfficientNetB4**. 
-Ce model est entrainé pour classifier l'image parmis les 4 possibilité suivantes: "sain", "atteint du  Covid", "de pneumonie" ou "d'opacité pulmonaire".
+help_tooltip = """La prédiction est effectuée par le modèle de deep-learning **EfficientNetB4**. 
+Ce modèle est entrainé pour classifier l'image parmi les 4 possibilités suivantes: "sain", "atteint du  Covid", "de pneumonie virale" ou "d'opacité pulmonaire".
 
-Plus d'information dans la partie "Contexte" et "modélisation".
+Plus d'informations sont disponibles dans la partie "Contexte" et "Modélisation".
 """
 
 context_text = """
 <div style="text-align: justify;">
 
-Cette aplication permet la prédiction de l'état d'un patient à partir image de radiographie pulmonaire.
+Cette application permet la prédiction de l'état d'un patient à partir d'une radiographie pulmonaire.
 
 </div>"""
 st.markdown(context_text, unsafe_allow_html=True, help=help_tooltip)
@@ -54,7 +54,7 @@ st.markdown(context_text, unsafe_allow_html=True, help=help_tooltip)
 
 context_text_2 = """
 <div style="text-align: justify;">
-Le fichier à uploader peut être une image au format "png", "jpg", ou un dossier au format "zip" pour prédire un ensemble directement.
+Le fichier à importer peut-être une image au format "png", "jpg", ou un dossier au format "zip" pour prédire un ensemble directement.
 
 Des exemples sont fournis ci-dessous pour pouvoir tester l'application.
 
@@ -75,7 +75,7 @@ if uploaded_file is not None:
 
         st.image(
             img,
-            caption="Image chargé après redimensionnement",
+            caption="Image chargée après redimensionnement",
             use_container_width=False,
         )
 
@@ -85,17 +85,17 @@ if uploaded_file is not None:
         )
 
         if action_required == "Prédire":
-            help_masked_value = "Si 'Non' alors le model de segmentation procèdera au masquage avant la prédiction."
+            help_masked_value = "Si 'Non' alors le modèle de segmentation procèdera au masquage avant la prédiction."
             masked_value = st.selectbox(
-                "Est-ce que l'image est masquée ? (*Ne présente que les poumons et pas le coeur, foie et autre marquage*)",
+                "Est-ce que l'image est masquée ? (*Les poumons sont isolés, on ne voit pas l'arrière-plan et les autres organes*)",
                 ("Oui", "Non"),
                 help=help_masked_value,
             )
             masked_value = True if masked_value == "Oui" else False
 
             left, middle, right = st.columns(3)
-            if middle.button("Démarrer la prediction", icon="🚀"):
-                with st.status("Prediction en cours...", expanded=True):
+            if middle.button("Démarrer la prédiction", icon="🚀"):
+                with st.status("Prédiction en cours...", expanded=True):
                     pred = action_prediction(
                         model_save_path,
                         img,
@@ -110,8 +110,9 @@ if uploaded_file is not None:
         elif action_required == "Visualiser":
 
             layer_name = st.selectbox(
-                "Choix de la layer à visualiser (Trié dans l'ordre: première, milieu, dernière):",
+                "Choix de la couche à visualiser (Première : stem_conv, Intermédiaire : block4f_expand_conv, Finale : top_conv):",
                 ("stem_conv", "block4f_expand_conv", "top_conv"),
+                index=2
             )
 
             left, middle, right = st.columns(3)
@@ -165,7 +166,7 @@ if uploaded_file is not None:
 
                 left_img, right_img = st.columns(2)
                 left_img.image(
-                    masked_img, caption="Image masqué", use_container_width=False
+                    masked_img, caption="Image masquée", use_container_width=False
                 )
                 right_img.image(
                     mask, caption="Masque", use_container_width=False, clamp=True
