@@ -76,6 +76,26 @@ st.image(str(Loss_Accuracy_path))
 Confusion_path = pathlib.Path('resources/modelisation/Confusion_Matrix.png')
 st.image(str(Confusion_path))
 
+# Afficher le rapport de classification
+
+data_report = {
+    'Class': ['COVID', 'Lung_Opacity', 'Normal', 'Viral_Pneumonia', 'accuracy', 'macro avg', 'weighted avg'],
+    'Precision': [0.93, 0.93, 0.90, 0.98, '', 0.94, 0.92],
+    'Recall': [0.90, 0.84, 0.97, 0.94, 0.92, 0.91, 0.92],
+    'F1-Score': [0.91, 0.88, 0.94, 0.96, '', 0.92, 0.92],
+    'Support': [362, 602, 1019, 134, 2117, 2117, 2117]
+}
+
+# Conversion en DataFrame
+df_report = pd.DataFrame(data_report).set_index('Class')
+
+# Affichage dans Streamlit
+
+clf_report = st.checkbox("Afficher le rapport de classification")
+if clf_report:
+    st.table(df_report)
+
+
 
 text2 = """
 <div style="text-align: justify;">
@@ -84,7 +104,7 @@ text2 = """
  
  La classification des images ayant été réalisée sur données masquées, nous avons développé un modèle de segmentation permettant de générer un masque pour toute nouvelle radiographie pulmonaire.
  
- Le modèle a été entrainé sur les masques et les images du jeu de données initial.
+ Le modèle a été entrainé sur 8690 (3000 maximum par catégorie) masques et images du jeu de données initial.
 
  ### Modèle U-NET
  Le modèle utilisé pour la segmentation est de type U-NET qui est actuellement le plus utilisé en imagerie médicale.
@@ -113,6 +133,24 @@ st.markdown(text3,unsafe_allow_html=True)
 # Si le bouton est cliqué, afficher le jeu de données
 Loss_Accuracy_UNET_path = pathlib.Path('resources/modelisation/Loss_Accuracy_UNET.png')
 st.image(str(Loss_Accuracy_UNET_path))
+
+
+data_unet_report = {
+  'Dataset': ['Training', 'Validation', 'Test'],
+    'Sample Size': [7038, 783, 869],
+    'Pixel-wise Accuracy': [0.9958, 0.9917, 0.9918],
+    'Dice Coefficient': [0.9911, 0.9822, 0.9822],
+    'Dice Loss': [0.0089, 0.0178, 0.0178]
+}
+
+# Conversion en DataFrame
+dfunet_report = pd.DataFrame(data_unet_report).set_index('Dataset')
+
+# Affichage dans Streamlit
+
+unet_report = st.checkbox("Afficher les métriques sur le jeu de données d'apprentissage, test et validation")
+if unet_report:
+    st.table(dfunet_report)
 
 
 text3 = """
