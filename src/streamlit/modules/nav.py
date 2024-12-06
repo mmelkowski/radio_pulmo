@@ -4,7 +4,11 @@ import streamlit as st
 def Navbar():
     """Creates a navigation bar for a Streamlit multipage application.
 
-    This function creates a sidebar containing the application title, logo, and navigation links to other pages.
+    This function creates a sidebar containing the application title, logo,
+    and navigation links to other pages defined in the Streamlit app.
+
+    Returns:
+        None
     """
     with st.sidebar:
         st.sidebar.title("Radiographie Pulmonaire")
