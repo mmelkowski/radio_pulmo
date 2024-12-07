@@ -53,15 +53,42 @@ Le fichier à importer peut-être une image au format "png", "jpg", ou un dossie
 
 Des exemples sont fournis ci-dessous pour pouvoir tester l'application.
 
+
 </div>"""
 st.markdown(context_text_2, unsafe_allow_html=True)
+
+
+# Répertoire contenant les fichiers d'exemple
+ex_dir =  pathlib.Path("resources/ex_images")
+
+# Liste des fichiers d'exemple dans le répertoire
+example_files = [f.name for f in ex_dir.iterdir() if f.is_file() and f.suffix in ['.png', '.jpg', '.jpeg', '.zip']]
+
+
+# Sélectionner un fichier d'exemple via un selectbox
+selected_file = st.selectbox("Choisir un fichier d'exemple", example_files)
+from io import BytesIO
+
 
 uploaded_file = st.file_uploader(
     "Fichier ou dossier à prédire:", type=["png", "jpg", "jpeg", "zip"]
 )
 if uploaded_file is not None:
     f_type = uploaded_file.type.split("/")[-1]
-    if f_type in ["png", "jpg", "jpeg"]:
+
+# Si un fichier d'exemple est sélectionné, on l'ouvre directement
+if selected_file:
+    file_path =  pathlib.Path("resources/ex_images",selected_file)
+    with open(file_path, "rb") as f:
+        file_content = f.read()
+    uploaded_file = BytesIO(file_content)
+    f_type="png"
+
+if uploaded_file is not None  :
+    # ne fonctionne plus avec fichier exemple on le passe au dessus
+    #f_type = uploaded_file.type.split("/")[-1]
+    if f_type in ["png", "jpg", "jpeg"] :
+
         # si png, jpg
 
         img_original_array, img = load_resize_img_from_buffer(
