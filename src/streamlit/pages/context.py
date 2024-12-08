@@ -14,11 +14,10 @@ top_text = """
 <div style="text-align: justify;">
 
 ## Avant Propos : 
-Ce travail a été réalisé par [Chris Hozé](https://www.linkedin.com/in/chris-hozé-007901a5) et [Mickaël Melkowski](https://www.linkedin.com/in/mickael-melkowski/) dans le cadre de notre formation DataScientist réalisée de Septembre à Décembre 2024 avec DataScientest.
+Ce travail a été réalisé par [Chris Hozé](https://www.linkedin.com/in/chris-hozé-007901a5) et [Mickaël Melkowski](https://www.linkedin.com/in/mickael-melkowski/).
+<br> L'objectif de notre étude est de développer un modèle pour classifier les radiographies pulmonaires.
 
-L'objectif de notre étude est de développer un modèle pour classifier les radiographies pulmonaires.
-
-L'ensemble du code, les notebooks d'exploration et les modèles sont disponibles sur le dépot [github](https://github.com/mmelkowski/radio_pulmo/) 
+L'ensemble du code, les notebooks d'exploration et les modèles sont disponibles sur le dépot [github](https://github.com/mmelkowski/radio_pulmo/).
 
 </div>
 """

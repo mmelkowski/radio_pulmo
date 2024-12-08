@@ -103,6 +103,20 @@ if clf_report:
 text2 = """
 <div style="text-align: justify;">
 
+ ### Exemples de prédiction 
+ 
+ La figure ci-dessous présente les résultats de classification ainsi que la visualisation des zones les plus impactantes pour la prédiction pour quatre images du jeu de donénes de test.
+
+ </div>
+"""
+
+st.markdown(text2, unsafe_allow_html=True)
+ex_pred_path = pathlib.Path("resources/modelisation/exemple_prediction.png")
+st.image(str(ex_pred_path))
+
+text3 = """
+<div style="text-align: justify;">
+
  ## Génération de masques 
  
  La classification des images ayant été réalisée sur données masquées, nous avons développé un modèle de segmentation permettant de générer un masque pour toute nouvelle radiographie pulmonaire.
@@ -118,7 +132,7 @@ text2 = """
  </div>
 """
 
-st.markdown(text2, unsafe_allow_html=True)
+st.markdown(text3, unsafe_allow_html=True)
 adaptedUNET_path = pathlib.Path("resources/modelisation/Adapted_UNET.png")
 st.image(str(adaptedUNET_path))
 

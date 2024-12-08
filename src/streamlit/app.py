@@ -238,7 +238,8 @@ bottom_text = """
     <br>
     <a href="https://www.linkedin.com/in/chris-hozé-007901a5" target="_blank" style="color: #0073e6;">Chris Hozé</a> 
     et 
-    <a href="https://www.linkedin.com/in/mickael-melkowski/" target="_blank" style="color: #0073e6;">Mickaël Melkowski</a>.
+    <a href="https://www.linkedin.com/in/mickael-melkowski/" target="_blank" style="color: #0073e6;">Mickaël Melkowski</a>
+     <br> dans le cadre de notre formation en DataScience réalisée avec DataScientest.
 
 </div>
 """
