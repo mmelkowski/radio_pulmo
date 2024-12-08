@@ -1,7 +1,8 @@
 import streamlit as st
 import pathlib
 import sys
-import random
+import os
+import shutil
 from io import BytesIO
 
 # To load our custom model functions
@@ -22,12 +23,18 @@ from modules.actions_functions import (
     action_prediction,
     action_visualization,
     action_masking,
+    unzip_images,
+    folder_action_prediction,
 )
-
 
 # App config:
 model_save_path = "../../models/EfficientNetB4_masked-Covid-19_masked-91.45.keras"
 seg_model_save_path = "../../models/cxr_reg_segmentation.best.keras"
+
+#unzip temp folder path:
+zip_folder_tmp = pathlib.Path(".temp")
+zip_folder_tmp_raw = zip_folder_tmp / "raw"
+zip_folder_tmp_processed = zip_folder_tmp / "processed"
 
 # Streamlit app page
 Navbar()
@@ -79,7 +86,7 @@ st.markdown(context_text_2, unsafe_allow_html=True)
 
 
 uploaded_file = st.file_uploader(
-    "Fichier ou dossier à prédire:", type=["png", "jpg", "jpeg", "zip"]
+    "Fichier ou dossier à prédire:", type=["png", "jpg", "jpeg", "zip", "x-zip-compressed"]
 )
 if uploaded_file is not None:
     f_type = uploaded_file.type.split("/")[-1]
@@ -213,9 +220,49 @@ if uploaded_file is not None or selected_file != 'Aucun':
                     mask, caption="Masque", use_container_width=False, clamp=True
                 )
 
-    elif f_type == "zip":
-        # si zip prediction sur folder, retour que d'un df avec name / prediction
-        print("A folder to process")
+    elif f_type in ["zip", "x-zip-compressed"]:
+
+        action_required = st.selectbox(
+            "Voulez vous prédire, masquer ou visualiser (*Grad-CAM*) les images ?",
+            ("Prédire", "Masquer", "Visualiser"),
+        )
+
+        if action_required == "Prédire":
+            help_masked_value = "Si 'Non' alors le modèle de segmentation procèdera au masquage automatiquement avant la prédiction."
+            masked_value = st.selectbox(
+                "Est-ce que les images sont masquées ? (*Les poumons sont isolés, on ne voit pas l'arrière-plan et les autres organes*)",
+                ("Oui", "Non"),
+                help=help_masked_value,
+            )
+            left, middle, right = st.columns(3)
+            if middle.button("Démarrer la prédiction", icon="🚀"):
+                with st.status("Prédiction en cours...", expanded=True):
+                    unzip_images(uploaded_file, extract_path=zip_folder_tmp_raw)
+
+                    # make process folder
+                    pathlib.Path(zip_folder_tmp_processed).mkdir(parents=True, exist_ok=True)
+
+                    df, output = folder_action_prediction(
+                        model_save_path,
+                        zip_folder_tmp_raw,
+                        masked_value=masked_value == "Oui",
+                        seg_model_save_path=seg_model_save_path,
+                    )
+                
+                st.success("Prédictions effectuées")
+
+                st.write("Le tableau montre pour chaque fichier son résultat le plus probable et ensuite la probabilité par catégorie.")
+                st.write(df)
+
+                shutil.rmtree(zip_folder_tmp)
+
+                st.download_button(
+                    label="Download results as csv",
+                    data=output,
+                    file_name=f"prediction_results.csv",
+                    mime="text/csv",
+                )
+
 
     else:
         print("uploaded_file.type", uploaded_file.type)

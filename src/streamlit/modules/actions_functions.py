@@ -1,8 +1,11 @@
 import streamlit as st
+import os
 import numpy as np
 import pathlib
 import sys
 import cv2
+import zipfile
+import pandas as pd
 
 # To load our custom model functions
 path = pathlib.Path("../../models").resolve()
@@ -16,6 +19,7 @@ sys.path = list(dict.fromkeys(sys.path))
 from model_functions import load_model, keras_predict_model, get_predict_value
 from seg_predict_model import scale_image, mask_generation, apply_mask
 from plot_functions import make_gradcam_heatmap, overlay_heatmap_on_array
+from data_functions import load_file
 
 
 def action_visualization(model_save_path, img, img_original_array, layer_name):
@@ -149,3 +153,94 @@ def action_prediction(
     pred = get_predict_value(pred)
 
     return pred
+
+
+def unzip_images(file_uploaded, extract_path="temp"):
+    pathlib.Path(extract_path).mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(file_uploaded,"r") as z:
+        z.extractall(extract_path)
+
+
+def folder_action_prediction(
+    model_save_path,
+    folder_path,
+    masked_value=False,
+    seg_model_save_path="../../models/cxr_reg_segmentation.best.keras",
+):
+    
+    columns = ["filename", 
+               "Prediction_results", 
+               "pred_COVID", 
+               "pred_Lung_Opacity", 
+               "pred_Normal", 
+               "pred_Viral_Pneumonia"]
+
+    res_dict = {k:[] for k in columns}
+
+    #seg_model_save_path = pathlib.Path(seg_model_save_path)
+    folder_path = pathlib.Path(folder_path)
+
+    st.write("⏳ Chargement du modèle de prédiction...")
+    model = load_model(model_save_path)
+    if not masked_value:
+        st.write("⏳ Chargement du modèle de segmentation...")
+        model_seg = load_model(seg_model_save_path)
+
+    my_bar = st.progress(0, text="🤔 Prédiction en cours...")
+
+    i=0
+    total = len(os.listdir(folder_path))
+    for radio_file in os.listdir(folder_path):
+        # load image
+        img = load_file(folder_path / radio_file)
+
+        # masking if necessary
+        if not masked_value:
+            img_to_mask = np.array(img).reshape(img.shape[1], img.shape[2], img.shape[3])
+            if img_to_mask.shape[2] != 1:
+                img_to_mask = img_to_mask[:, :, 0]
+            img_to_apply_mask = img_to_mask.reshape(img_to_mask.shape[0], img_to_mask.shape[1])
+
+            img_to_mask = cv2.resize(img_to_mask, dsize=(256, 256))
+            img_to_mask = scale_image(img_to_mask)
+            img_to_mask = np.array(img_to_mask).reshape(1, 256, 256, 1)
+            mask = mask_generation(model_seg, img_to_mask)
+            mask = np.array(mask).reshape(256, 256)
+
+            masked_img = apply_mask(
+                img_to_apply_mask,
+                mask,
+                resize=True,
+                width=img_to_apply_mask.shape[0],
+                height=img_to_apply_mask.shape[1],
+            )
+            masked_img = cv2.resize(masked_img, dsize=(224, 224))
+            masked_img = np.array(masked_img).reshape(1, 224, 224, 1)
+            masked_img = np.repeat(masked_img[:, :, :], masked_img.shape[0], axis=3)
+            img = masked_img
+
+        list_pred = keras_predict_model(model, img)
+        pred = get_predict_value(list_pred)
+        list_pred = list_pred[0]
+
+        res_dict["filename"].append(radio_file)
+        res_dict["Prediction_results"].append(pred)
+        res_dict["pred_COVID"].append(list_pred[0])
+        res_dict["pred_Lung_Opacity"].append(list_pred[1])
+        res_dict["pred_Normal"].append(list_pred[2])
+        res_dict["pred_Viral_Pneumonia"].append(list_pred[3])
+
+        i+=1
+        # Update que toute les 5 prédictions
+        if i % 5:
+            percent = round((i / total) * 100)
+            my_bar.progress(percent, text="🤔 Prédiction en cours...")
+
+    my_bar.progress(100, text="👍 Prédiction fini.")
+
+    df = pd.DataFrame(res_dict)
+
+    return df, df.to_csv(index=False).encode('utf-8')
+
+
+
