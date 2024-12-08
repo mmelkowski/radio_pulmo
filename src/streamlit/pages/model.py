@@ -165,9 +165,29 @@ text3 = """
  Ces deux étapes de modélisation permettent de génerer des masques puis de diagnostiquer automatiquement des radiographies pulmonaires.
  Le modèle de segmentation a une précision supérieure à 0.99 ce qui est très satisfaisant.
  Le modèle de classification a quant à lui une précision de 0.92 ce qui est conforme à l'[état de l'art](https://arxiv.org/pdf/2003.09871).
+ 
+ Il serait pertinent d'explorer l'efficacité des modèles de type Transformer afin d'améliorer encore cette précision. 
+ Cependant, leur utilisation a révélé des coûts computationnels trop élevés au regard des ressources informatiques disponibles.
+ 
+ Pour aller plus loin, il serait également intéressant de disposer d'annotations sur le degré de sévérité de l'atteinte pulmonaire, 
+ ce qui permettrait d'enrichir notre application avec cette prédiction.
 
- Il pourrait être intéressant de tester l'efficacité de modèle de type transformers pour améliorer encore cette précision mais ils 
- se sont avérés trop coûteux en ressources informatiques pour les équipements à notre disposition. 
+ """
+st.markdown(text3, unsafe_allow_html=True)
+
+
+
+# Crédit
+bottom_text = """
+<div style="font-size: 14px; color: gray; font-style: italic; text-align: center; margin-top: 20px;">
+ Cette application a été développée par 
+    <br>
+    <a href="https://www.linkedin.com/in/chris-hozé-007901a5" target="_blank" style="color: #0073e6;">Chris Hozé</a> 
+    et 
+    <a href="https://www.linkedin.com/in/mickael-melkowski/" target="_blank" style="color: #0073e6;">Mickaël Melkowski</a>.
+
 </div>
 """
-st.markdown(text3, unsafe_allow_html=True)
+
+# Affichage du texte dans la sidebar
+st.sidebar.markdown(bottom_text, unsafe_allow_html=True)

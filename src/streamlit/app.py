@@ -1,6 +1,8 @@
 import streamlit as st
 import pathlib
 import sys
+import random
+from io import BytesIO
 
 # To load our custom model functions
 path = pathlib.Path("../models").resolve()
@@ -33,41 +35,47 @@ Navbar()
 st.title("Application de classification de Radiographie Pulmonaire")
 
 help_tooltip = """La prédiction est effectuée par le modèle de deep-learning **EfficientNetB4**. 
-Ce modèle est entrainé pour classifier l'image parmi les 4 possibilités suivantes: "sain", "atteint du  Covid", "de pneumonie virale" ou "d'opacité pulmonaire".
+Ce modèle est entrainé pour classifier une radiographie pulmonaire parmi les 4 possibilités suivantes: "sain", "atteint du  Covid", "de pneumonie virale" ou "d'opacité pulmonaire".
+Sa précision est de 92% pour l'ensemble des catégories.
 
-Plus d'informations sont disponibles dans la partie "Contexte" et "Modélisation".
+Plus d'informations sont disponibles dans les parties "Contexte" et "Modélisation".
 """
 
 context_text = """
 <div style="text-align: justify;">
 
-Cette application permet la prédiction de l'état d'un patient à partir d'une radiographie pulmonaire.
-
+Cette application permet la prédiction de l'état d'un patient à partir d'une radiographie pulmonaire pour les affections suivantes : Covid, pneumonie virale ou opacité pulmonaire.
 </div>"""
 st.markdown(context_text, unsafe_allow_html=True, help=help_tooltip)
 
-
-context_text_2 = """
+text1 = """
 <div style="text-align: justify;">
-Le fichier à importer peut-être une image au format "png", "jpg", ou un dossier au format "zip" pour prédire un ensemble directement.
-
-Des exemples sont fournis ci-dessous pour pouvoir tester l'application.
-
-
+La prédiction s'effectue sur des images brutes ou après isolation du poumon.
+<br> Il est possible d'effectuer la prédiction et de visualiser les zones les plus informatives.
+<br>
+<br>
+Elle peut être utilisée à partir des exemples fournis ci-dessous ou en important vos propres images.
 </div>"""
-st.markdown(context_text_2, unsafe_allow_html=True)
+st.markdown(text1, unsafe_allow_html=True)
 
 
 # Répertoire contenant les fichiers d'exemple
 ex_dir =  pathlib.Path("resources/ex_images")
 
 # Liste des fichiers d'exemple dans le répertoire
-example_files = [f.name for f in ex_dir.iterdir() if f.is_file() and f.suffix in ['.png', '.jpg', '.jpeg', '.zip']]
-
+example_files = ["Aucun"] + [f.name for f in ex_dir.iterdir() if f.is_file() and f.suffix in ['.png', '.jpg', '.jpeg', '.zip']]
 
 # Sélectionner un fichier d'exemple via un selectbox
 selected_file = st.selectbox("Choisir un fichier d'exemple", example_files)
-from io import BytesIO
+
+
+context_text_2 = """
+<div style="text-align: justify;">
+Le fichier à importer doit être une image au format "png", "jpg".
+<br> Il est possible de prédire un ensemble de fichiers avec un dossier au format "zip".
+
+</div>"""
+st.markdown(context_text_2, unsafe_allow_html=True)
 
 
 uploaded_file = st.file_uploader(
@@ -75,16 +83,19 @@ uploaded_file = st.file_uploader(
 )
 if uploaded_file is not None:
     f_type = uploaded_file.type.split("/")[-1]
+    filename = uploaded_file.name
 
 # Si un fichier d'exemple est sélectionné, on l'ouvre directement
 if selected_file:
-    file_path =  pathlib.Path("resources/ex_images",selected_file)
-    with open(file_path, "rb") as f:
-        file_content = f.read()
-    uploaded_file = BytesIO(file_content)
-    f_type="png"
+    if selected_file != "Aucun" :
+        file_path =  pathlib.Path("resources/ex_images",selected_file)
+        with open(file_path, "rb") as f:
+            file_content = f.read()
+        uploaded_file = BytesIO(file_content)
+        f_type = selected_file.split(".")[-1]
+        filename = selected_file
 
-if uploaded_file is not None  :
+if uploaded_file is not None or selected_file != 'Aucun':
     # ne fonctionne plus avec fichier exemple on le passe au dessus
     #f_type = uploaded_file.type.split("/")[-1]
     if f_type in ["png", "jpg", "jpeg"] :
@@ -109,7 +120,7 @@ if uploaded_file is not None  :
         if action_required == "Prédire":
             help_masked_value = "Si 'Non' alors le modèle de segmentation procèdera au masquage automatiquement avant la prédiction."
             masked_value = st.selectbox(
-                "Est-ce que l'image est masquée ? (*Les poumons sont isolés, on ne voit pas l'arrière-plan et les autres organes*)",
+                "L'image est-elle masquée ? (*Les poumons sont isolés, on ne voit ni l'arrière-plan ni les autres organes*)",
                 ("Oui", "Non"),
                 help=help_masked_value,
             )
@@ -130,6 +141,14 @@ if uploaded_file is not None  :
                 st.text(f" L'image est classée comme: {pred}")
 
         elif action_required == "Visualiser":
+
+            
+            vis_text = """
+            <div style="text-align: justify;">
+            Pour la visualisation, l'image doit être masquée.
+            <br> Vous pouvez visualiser les pixels les plus importantes au début, au milieu et à la fin de prédiction.
+            </div>"""
+            st.markdown(vis_text, unsafe_allow_html=True)
 
             layer_name = st.selectbox(
                 "Choix de la couche à visualiser (Première : stem_conv, Intermédiaire : block4f_expand_conv, Finale : top_conv):",
@@ -167,13 +186,13 @@ if uploaded_file is not None  :
                 left_d.download_button(
                     label="Download Grad-CAM",
                     data=io_overlay,
-                    file_name=f"Grad_CAM_{uploaded_file.name}.png",
+                    file_name=f"Grad_CAM_{filename}.png",
                     mime="image/png",
                 )
                 right_d.download_button(
                     label="Download heatmap",
                     data=io_heatmap,
-                    file_name=f"Heatmap_{uploaded_file.name}.png",
+                    file_name=f"Heatmap_{filename}.png",
                     mime="image/png",
                 )
 
@@ -201,3 +220,28 @@ if uploaded_file is not None  :
     else:
         print("uploaded_file.type", uploaded_file.type)
         raise TypeError("Wrong file type submitted (not 'png', 'jpg', 'jpeg' or 'zip')")
+
+# bottom_text = """
+# <div style="font-size: 12px; color: gray; font-style: italic; position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); margin: 0;">
+
+# Cette application a été développée par [Chris Hozé](https://www.linkedin.com/in/chris-hozé-007901a5) et [Mickaël Melkowski](https://www.linkedin.com/in/mickael-melkowski/).
+# </div>
+# """
+# st.markdown(bottom_text, unsafe_allow_html=True)
+
+
+
+# Crédit
+bottom_text = """
+<div style="font-size: 14px; color: gray; font-style: italic; text-align: center; margin-top: 20px;">
+ Cette application a été développée par 
+    <br>
+    <a href="https://www.linkedin.com/in/chris-hozé-007901a5" target="_blank" style="color: #0073e6;">Chris Hozé</a> 
+    et 
+    <a href="https://www.linkedin.com/in/mickael-melkowski/" target="_blank" style="color: #0073e6;">Mickaël Melkowski</a>.
+
+</div>
+"""
+
+# Affichage du texte dans la sidebar
+st.sidebar.markdown(bottom_text, unsafe_allow_html=True)
