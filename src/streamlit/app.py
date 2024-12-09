@@ -27,6 +27,7 @@ from modules.actions_functions import (
     folder_action_prediction,
 )
 
+
 # App config:
 model_save_path = "../../models/EfficientNetB4_masked-Covid-19_masked-91.45.keras"
 seg_model_save_path = "../../models/cxr_reg_segmentation.best.keras"
@@ -54,6 +55,7 @@ context_text = """
 Cette application permet la prédiction de l'état d'un patient à partir d'une radiographie pulmonaire pour les affections suivantes : Covid, pneumonie virale ou opacité pulmonaire.
 <br> Elle peut être utilisée à partir des exemples fournis ci-dessous ou en important vos propres images.
 </div>"""
+
 st.markdown(context_text, unsafe_allow_html=True, help=help_tooltip)
 
 text_1 = """
@@ -66,6 +68,7 @@ La prédiction s'effectue sur des images brutes ou après isolation du poumon pa
 <li> la visualisation les zones les plus informatives pour la prédiction <br>
 <br>
 """
+
 st.markdown(text_1, unsafe_allow_html=True)
 # text_1 = """
 # # <div style="text-align: justify;">
@@ -79,8 +82,6 @@ st.markdown(text_1, unsafe_allow_html=True)
 # # <br> 
 # # </div>"""
 
-
-
 # Répertoire contenant les fichiers d'exemple
 ex_dir =  pathlib.Path("resources/ex_images")
 
@@ -89,7 +90,6 @@ example_files = ["Aucun"] + [f.name for f in ex_dir.iterdir() if f.is_file() and
 
 # Sélectionner un fichier d'exemple via un selectbox
 selected_file = st.selectbox("Choisir un fichier d'exemple", example_files)
-
 
 context_text_2 = """
 <div style="text-align: justify;">
@@ -103,6 +103,7 @@ st.markdown(context_text_2, unsafe_allow_html=True)
 uploaded_file = st.file_uploader(
     "Fichier ou dossier à prédire:", type=["png", "jpg", "jpeg", "zip", "x-zip-compressed"]
 )
+
 if uploaded_file is not None:
     f_type = uploaded_file.type.split("/")[-1]
     filename = uploaded_file.name
@@ -146,6 +147,7 @@ if uploaded_file is not None or selected_file != 'Aucun':
                 ("Oui", "Non"),
                 help=help_masked_value,
             )
+            
             masked_value = True if masked_value == "Oui" else False
 
             left, middle, right = st.columns(3)
@@ -163,8 +165,6 @@ if uploaded_file is not None or selected_file != 'Aucun':
                 st.text(f" L'image est classée comme: {pred}")
 
         elif action_required == "Visualiser":
-
-            
             vis_text = """
             <div style="text-align: justify;">
             Pour la visualisation, l'image doit être masquée.

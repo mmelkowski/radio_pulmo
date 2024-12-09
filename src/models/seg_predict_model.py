@@ -274,7 +274,6 @@ def seg_predict_model(
         folderpath = pathlib.Path(folderpath)
         # process images in folder
         for img_filename in os.listdir(folderpath):
-            print(img_filename)
             process_image(
                 folderpath,
                 img_filename,

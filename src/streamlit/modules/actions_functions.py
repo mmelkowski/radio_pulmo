@@ -168,11 +168,11 @@ def folder_action_prediction(
     seg_model_save_path="../../models/cxr_reg_segmentation.best.keras",
 ):
     
-    columns = ["filename", 
-               "Prediction_results", 
-               "pred_COVID", 
-               "pred_Lung_Opacity", 
-               "pred_Normal", 
+    columns = ["filename",
+               "Prediction_results",
+               "pred_COVID",
+               "pred_Lung_Opacity",
+               "pred_Normal",
                "pred_Viral_Pneumonia"]
 
     res_dict = {k:[] for k in columns}
