@@ -114,7 +114,7 @@ st.markdown(text_10, unsafe_allow_html=True)
 # Charger le dataset contenant uniquement label, source, moyenne et std par image
 @st.cache_data
 def load_data():
-    df_pca_path = pathlib.Path("resources/pca_df.pkl")
+    df_pca_path = pathlib.Path("resources/pca/pca_df.pkl")
     df = pd.read_pickle(df_pca_path)
     return df
 
@@ -213,38 +213,48 @@ fig = plot_pca(PCA_choice, supp)
 # Afficher le countplot dans Streamlit
 st.plotly_chart(fig)
 
-
-# Afficher le dataframe avec un bouton
-affichage_image = st.selectbox(
-    "Afficher les images des composantes de l'ACP ?", options=["Non"] + ["Oui"], index=0
-)
-
-if affichage_image == "Oui":
-    # Choisir le nombre de composantes a afficher
-
-    num_comp = st.slider(
-        "Choisissez le nombre de composantes principales à afficher",
-        min_value=5,
-        max_value=pca_var.shape[0],  # Nombre maximum de composantes dans pca_var
-        value=int(pca_var.shape[0] / 2),  # Valeur par défaut
-        step=5,
-    )
-    # Charger le pickle contenant les composantes de l'acp
-    pca_path = pathlib.Path("resources/pca/pca_components.pkl")
-    with open(pca_path, "rb") as g:
-        pca_comp = pickle.load(g)
-
-    num_rows = np.ceil(num_comp / 5).astype(int)
-    fig4, axes = plt.subplots(num_rows, 5, figsize=(5 * 6, num_rows * 6))
-    for i in range(num_comp):
-        ax = axes[i // 5, i % 5]
-        ax.imshow(pca_comp[i].reshape(256, 256), cmap="gray")
-        ax.set_title(f"Composant PCA {i+1}")
-        ax.axis("off")
-    st.pyplot(fig4)
-
-
 text_11 = """
+<div style="text-align: justify;">
+
+### Images des composantes de l'ACP
+
+</div>
+"""
+st.markdown(text_11, unsafe_allow_html=True)
+
+num_comp = st.slider(
+    "Choisissez le nombre de composantes principales à afficher",
+    min_value=4,
+    max_value=pca_var.shape[0],  # Nombre maximum de composantes dans pca_var
+    value=4,  # Valeur par défaut
+    step=4,
+)
+# Charger le pickle contenant les composantes de l'acp
+pca_path = pathlib.Path("resources/pca/pca_components.pkl")
+with open(pca_path, "rb") as g:
+    pca_comp = pickle.load(g)
+
+# Calculer le nombre de colonnes et de lignes nécessaires 
+num_columns = 4
+num_rows = np.ceil(num_comp / num_columns).astype(int)
+
+# Créer une grille avec les images 
+fig4, axes = plt.subplots(num_rows, num_columns, figsize=(num_columns * 6, num_rows * 6)) 
+
+# Si `axes` est un tableau 1D, le convertir en 2D 
+if num_rows == 1: axes = np.expand_dims(axes, axis=0) 
+if num_columns == 1: axes = np.expand_dims(axes, axis=1)
+
+# Afficher les composants PCA dans la grille 
+for i in range(num_comp): 
+    ax = axes[i // num_columns, i % num_columns] 
+    ax.imshow(pca_comp[i].reshape(256, 256), cmap="gray")
+    ax.set_title(f"Composant PCA {i+1}") 
+    ax.axis("off") 
+        
+st.pyplot(fig4)
+
+text_12 = """
 <div style="text-align: justify;">
 
 
@@ -253,12 +263,13 @@ text_11 = """
 Les composantes de l'ACP ne permettent pas de séparer les échantillons par groupe, et on identifie pas de sous-population en fonction de la source de données. 
 Cette difficulté peut s'expliquer car l'orientation, le niveau de zoom et la taille des poumons diffèrent selon les patients et les radiographies.
 
-On ne constate donc pas de solution évidente à notre problème de classification avec une séparation dans un plan. Ceci suggère que des modèles de classification classiques ne seront pas adaptés. 
-Des solutions plus complexes pouvant prendre en compte un grand nombre de features comme le deep-learning seront donc à mettre en œuvre.
+On ne constate donc pas de solution évidente à notre problème de classification avec une séparation dans un plan. 
+Ceci suggère que des modèles de classification classiques ne seront pas adaptés. 
+<br> Des solutions plus complexes pouvant prendre en compte un grand nombre de features comme le deep-learning seront donc à mettre en œuvre.
 
 </div>
 """
-st.markdown(text_11, unsafe_allow_html=True)
+st.markdown(text_12, unsafe_allow_html=True)
 
 
 # Crédit

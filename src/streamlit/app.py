@@ -52,18 +52,33 @@ context_text = """
 <div style="text-align: justify;">
 
 Cette application permet la prédiction de l'état d'un patient à partir d'une radiographie pulmonaire pour les affections suivantes : Covid, pneumonie virale ou opacité pulmonaire.
+<br> Elle peut être utilisée à partir des exemples fournis ci-dessous ou en important vos propres images.
 </div>"""
 st.markdown(context_text, unsafe_allow_html=True, help=help_tooltip)
 
-text1 = """
+text_1 = """
 <div style="text-align: justify;">
-La prédiction s'effectue sur des images brutes ou après isolation du poumon.
-<br> Il est possible d'effectuer la prédiction et de visualiser les zones les plus informatives.
+La prédiction s'effectue sur des images brutes ou après isolation du poumon par masquage.
 <br>
+<br> Trois fonctionnalités sont disponibles :
+<li> la prédiction des affections
+<li> la génération de masque pour isoler les poumons
+<li> la visualisation les zones les plus informatives pour la prédiction <br>
 <br>
-Elle peut être utilisée à partir des exemples fournis ci-dessous ou en important vos propres images.
-</div>"""
-st.markdown(text1, unsafe_allow_html=True)
+"""
+st.markdown(text_1, unsafe_allow_html=True)
+# text_1 = """
+# # <div style="text-align: justify;">
+# # La prédiction s'effectue sur des images brutes ou après isolation du poumon par masquage.
+# # <br> Trois fonctionnalités sont disponibles :
+# # _ la prédiction des affections 
+# # _ la génération de masque pour isoler les poumons
+# # _ la visualisation les zones les plus informatives pour la prédiction.
+# # <br>
+
+# # <br> 
+# # </div>"""
+
 
 
 # Répertoire contenant les fichiers d'exemple
@@ -78,9 +93,9 @@ selected_file = st.selectbox("Choisir un fichier d'exemple", example_files)
 
 context_text_2 = """
 <div style="text-align: justify;">
-Le fichier à importer doit être une image au format "png", "jpg".
+<br>Le fichier à importer doit être une image au format "png", "jpg".
 <br> Il est possible de prédire un ensemble de fichiers avec un dossier au format "zip".
-
+<br> 
 </div>"""
 st.markdown(context_text_2, unsafe_allow_html=True)
 
@@ -276,10 +291,8 @@ if uploaded_file is not None or selected_file != 'Aucun':
 # """
 # st.markdown(bottom_text, unsafe_allow_html=True)
 
-
-
 # Crédit
-bottom_text = """
+side_text = """
 <div style="font-size: 14px; color: gray; font-style: italic; text-align: center; margin-top: 20px;">
  Cette application a été développée par 
     <br>
@@ -287,9 +300,11 @@ bottom_text = """
     et 
     <a href="https://www.linkedin.com/in/mickael-melkowski/" target="_blank" style="color: #0073e6;">Mickaël Melkowski</a>
      <br> dans le cadre de notre formation en DataScience réalisée avec DataScientest.
-
+     <br>
+     <br>L'ensemble des scripts et modèles sont disponibles sur le dépot 
+     <a href="https://github.com/mmelkowski/radio_pulmo/" target="_blank" style="color: #0073e6;">github</a> du projet.
 </div>
 """
 
 # Affichage du texte dans la sidebar
-st.sidebar.markdown(bottom_text, unsafe_allow_html=True)
+st.sidebar.markdown(side_text, unsafe_allow_html=True)

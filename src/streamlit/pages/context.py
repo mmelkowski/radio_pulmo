@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import pathlib
+import pickle
 
 # import custom Navigation bar
 from modules.nav import Navbar
@@ -10,22 +12,9 @@ Navbar()
 st.title("Contexte du projet")
 
 
-top_text = """
-<div style="text-align: justify;">
-
-## Avant Propos : 
-Ce travail a été réalisé par [Chris Hozé](https://www.linkedin.com/in/chris-hozé-007901a5) et [Mickaël Melkowski](https://www.linkedin.com/in/mickael-melkowski/).
-<br> L'objectif de notre étude est de développer un modèle pour classifier les radiographies pulmonaires.
-
-L'ensemble du code, les notebooks d'exploration et les modèles sont disponibles sur le dépot [github](https://github.com/mmelkowski/radio_pulmo/).
-
-</div>
-"""
-st.markdown(top_text, unsafe_allow_html=True)
-
-
 context_text = """
 <div style="text-align: justify;">
+L'objectif de notre étude est de développer un modèle pour classifier les radiographies pulmonaires.
 
 ## Jeu de données :
 
@@ -36,7 +25,7 @@ Les seules métadonnées disponibles concernent l’origine des radiographies. A
 
 Chaque image est fournie avec un masque pré-calculé, généré par apprentissage semi-automatique. L'application du masque permet d'isoler les pixels liés aux poumons et ainsi de réduire la zone ciblée, concentrant l'analyse sur la partie pertinente de l'image.
 
-Un exemple d'image, de masque et de radiographie après masquage est présenté ci-dessous :
+Un exemple d'image, de masque et de radiographie après masquage sont présentés ci-dessous :
 </div>"""
 
 st.markdown(context_text, unsafe_allow_html=True)
@@ -66,18 +55,19 @@ source_tooltip = """Les sources des images ont été recodées de la façon suiv
 count_text = """
 <div style="text-align: justify;">
 
-4 catégories d'images sont présentes dans le jeu de données, le graphique ci-dessous indique la répartition des images par catégorie et par source :
+Quatre catégories d'images sont présentes dans le jeu de données.
+<br> Le graphique ci-dessous indique la répartition des images par catégorie et par source :
 
 </div>"""
 st.markdown(count_text, unsafe_allow_html=True, help=source_tooltip)
 
 
 # Charger le dataset contenant uniquement label, source, moyenne et std par image
-@st.cache_data
+#@st.cache_data
 def load_data():
-    df = pd.read_pickle("resources/df_mean_std.pkl")
+    df_mean_std_path = pathlib.Path("resources/decouverte_donnees/df_mean_std.pkl")
+    df = pd.read_pickle(df_mean_std_path)
     return df
-
 
 # Charger les données
 df_mean_std = load_data()
@@ -86,7 +76,7 @@ df_mean_std = load_data()
 # Demander à l'utilisateur sur quoi il veut se baser pour faire le countplot
 options = ["Label", "Source", "Label & Source"]
 selection = st.selectbox(
-    "Choisir l'information à utiliser pour la répartition ", options
+    "Choisir l'information à utiliser pour visualiser la distribution ", options
 )
 
 

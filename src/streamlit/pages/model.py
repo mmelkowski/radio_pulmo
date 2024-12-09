@@ -105,7 +105,7 @@ text2 = """
 
  ### Exemples de prédiction 
  
- La figure ci-dessous présente les résultats de classification ainsi que la visualisation des zones les plus impactantes pour la prédiction pour quatre images du jeu de donénes de test.
+ La figure ci-dessous présente les résultats de classification ainsi que la visualisation des zones les plus impactantes pour la prédiction pour quatre images du jeu de données de test.
 
  </div>
 """
@@ -121,7 +121,7 @@ text3 = """
  
  La classification des images ayant été réalisée sur données masquées, nous avons développé un modèle de segmentation permettant de générer un masque pour toute nouvelle radiographie pulmonaire.
  
- Le modèle a été entrainé sur 8690 (3000 maximum par catégorie) masques et images du jeu de données initial.
+ Le modèle a été entrainé sur 8690 (3000 max par catégorie) masques et images du jeu de données initial.
 
  ### Modèle U-NET
  Le modèle utilisé pour la segmentation est de type U-NET qui est actuellement le plus utilisé en imagerie médicale.
