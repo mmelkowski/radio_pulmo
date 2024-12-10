@@ -41,6 +41,7 @@ zip_folder_tmp_raw = zip_folder_tmp / "raw"
 zip_folder_tmp_processed = zip_folder_tmp / "processed"
 
 # Streamlit app page
+st.set_page_config(page_title="Radio-Pulmo Prediction App")
 st.set_option("client.showSidebarNavigation", False)
 Navbar()
 
