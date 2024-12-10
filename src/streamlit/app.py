@@ -5,6 +5,7 @@ import os
 import shutil
 from io import BytesIO
 
+a ="""
 # To load our custom model functions
 path = pathlib.Path("../models").resolve()
 sys.path.insert(0, str(path))
@@ -13,8 +14,8 @@ sys.path.insert(0, str(path))
 
 ## clean for reloading scriptwithout spamming sys.path insert
 sys.path = list(dict.fromkeys(sys.path))
-
-from data_functions import load_resize_img_from_buffer
+"""
+from modules.data_functions import load_resize_img_from_buffer
 
 # import custom streamlit script
 from modules.nav import Navbar

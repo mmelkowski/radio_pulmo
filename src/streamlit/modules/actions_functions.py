@@ -7,6 +7,7 @@ import cv2
 import zipfile
 import pandas as pd
 
+a="""
 # To load our custom model functions
 path = pathlib.Path("../../models").resolve()
 sys.path.insert(0, str(path))
@@ -15,11 +16,12 @@ sys.path.insert(0, str(path))
 
 ## clean for reloading scriptwithout spamming sys.path insert
 sys.path = list(dict.fromkeys(sys.path))
+"""
 
-from model_functions import load_model, keras_predict_model, get_predict_value
-from seg_predict_model import scale_image, mask_generation, apply_mask
-from plot_functions import make_gradcam_heatmap, overlay_heatmap_on_array
-from data_functions import load_file
+from modules.model_functions import load_model, keras_predict_model, get_predict_value
+from modules.seg_predict_model import scale_image, mask_generation, apply_mask
+from modules.plot_functions import make_gradcam_heatmap, overlay_heatmap_on_array
+from modules.data_functions import load_file
 
 
 def action_visualization(model_save_path, img, img_original_array, layer_name):
