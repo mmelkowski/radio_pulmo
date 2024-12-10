@@ -3,7 +3,7 @@ streamlit
 click
 matplotlib
 numpy
-opencv-python-contrib-headless==4.10.0.84
+opencv-python-headless
 pandas
 plotly
 scikit-learn

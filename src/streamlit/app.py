@@ -28,10 +28,21 @@ from modules.actions_functions import (
     folder_action_prediction,
 )
 
+from modules.merge_model import merge_files
+
 
 # App config:
-model_save_path = "../../models/EfficientNetB4_masked-Covid-19_masked-91.45.keras"
-seg_model_save_path = "../../models/cxr_reg_segmentation.best.keras"
+model_save_path = "models/EfficientNetB4_masked-Covid-19_masked-91.45.keras"
+seg_model_save_path = "models/cxr_reg_segmentation.best.keras"
+
+if not pathlib.Path(model_save_path).exists():
+    parts = [
+        "models/EfficientNetB4_masked-Covid-19_masked-91.45.keras.part_0",
+        "models/EfficientNetB4_masked-Covid-19_masked-91.45.keras.part_1",
+        "models/EfficientNetB4_masked-Covid-19_masked-91.45.keras.part_2"
+    ]
+    output_file_path = "models/EfficientNetB4_masked-Covid-19_masked-91.45.keras"
+    merge_files(output_file_path, parts)
 
 #unzip temp folder path:
 zip_folder_tmp = pathlib.Path(".temp")
