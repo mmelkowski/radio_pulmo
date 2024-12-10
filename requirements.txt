@@ -3,7 +3,7 @@ streamlit
 click
 matplotlib
 numpy
-opencv-python
+opencv-python-headless
 pandas
 plotly
 scikit-learn
