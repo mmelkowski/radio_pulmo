@@ -2,21 +2,11 @@ import streamlit as st
 import os
 import numpy as np
 import pathlib
-import sys
 import cv2
 import zipfile
 import pandas as pd
-
-a="""
-# To load our custom model functions
-path = pathlib.Path("../../models").resolve()
-sys.path.insert(0, str(path))
-path = pathlib.Path("../..").resolve()
-sys.path.insert(0, str(path))
-
-## clean for reloading scriptwithout spamming sys.path insert
-sys.path = list(dict.fromkeys(sys.path))
-"""
+from PIL import Image
+from modules.img_functions import convert_array_to_PIL
 
 from modules.model_functions import load_model, keras_predict_model, get_predict_value
 from modules.seg_predict_model import scale_image, mask_generation, apply_mask
@@ -245,4 +235,155 @@ def folder_action_prediction(
     return df, df.to_csv(index=False).encode('utf-8')
 
 
+def folder_action_masking(
+    seg_model_save_path, 
+    folder_path,
+    img_save_location                      
+    ):
+    """Applies a segmentation mask to an image.
 
+    This function loads a segmentation model, resizes the input image, generates a segmentation
+    mask, and applies the mask to the original image.
+
+    Args:
+        seg_model_save_path: Path to the saved segmentation model.
+        img_original_array: The original image as a NumPy array.
+
+    Returns:
+        A tuple containing:
+        - The generated mask as a NumPy array.
+        - The masked image as a NumPy array.
+    """
+    # load model
+    st.write("⏳ Chargement du model de masquage...")
+    model_seg = load_model(seg_model_save_path)
+
+    img_save_location = pathlib.Path(img_save_location)
+
+    masked_img_save_location = img_save_location / "masked_image"
+    mask_save_location = img_save_location / "mask"
+    masked_img_save_location.mkdir(parents=True, exist_ok=True)
+    mask_save_location.mkdir(parents=True, exist_ok=True)
+
+    my_bar = st.progress(0, text="✂️ Masquage cours...")
+    total = len(os.listdir(folder_path))
+    i = 0
+
+    folder_path = pathlib.Path(folder_path)
+    for radio_file in os.listdir(folder_path):
+        # load image
+        img = load_file(folder_path / radio_file, resize=False)
+
+        img_to_mask = np.array(img).reshape(img.shape[1], img.shape[2], img.shape[3])
+
+        if img_to_mask.shape[2] != 1:
+            img_to_mask = img_to_mask[:, :, 0]
+
+        final_to_apply = img_to_mask
+
+        img_to_mask = cv2.resize(img_to_mask, dsize=(256, 256))
+        img_to_mask = np.array(img_to_mask).reshape(1, 256, 256, 1)
+
+        mask = mask_generation(model_seg, img_to_mask)
+
+        mask = np.array(mask).reshape(256, 256)
+
+        masked_img = apply_mask(
+            final_to_apply,
+            mask,
+            resize=True,
+            width=final_to_apply.shape[0],
+            height=final_to_apply.shape[1],
+        )
+
+        mask = Image.fromarray(mask)
+        mask = mask.convert('RGB')
+        filepath = mask_save_location / f"mask_{radio_file}.jpeg"
+        mask.save(filepath.resolve())
+
+        masked_img = Image.fromarray(masked_img)
+        masked_img = masked_img.convert('RGB')
+        filepath = masked_img_save_location / f"masked_{radio_file}.jpeg"
+        masked_img.save(filepath.resolve())
+
+        i+=1
+        # Update que toute les 5 prédictions
+        if i % 5:
+            percent = round((i / total) * 100)
+            my_bar.progress(percent, text="✂️ Masquage cours...")
+    
+    my_bar.progress(percent, text="✂️ Masquage fini.")
+
+def folder_action_visualization(
+    model_save_path,
+    layer_name,
+    folder_path,
+    img_save_location                   
+    ):
+    """Applies a segmentation mask to an image.
+
+    This function loads a segmentation model, resizes the input image, generates a segmentation
+    mask, and applies the mask to the original image.
+
+    Args:
+        seg_model_save_path: Path to the saved segmentation model.
+        img_original_array: The original image as a NumPy array.
+
+    Returns:
+        A tuple containing:
+        - The generated mask as a NumPy array.
+        - The masked image as a NumPy array.
+    """
+    # load model
+    st.write("⏳ Chargement du model de prédiction...")
+    model = load_model(model_save_path)
+    efficientnet = model.get_layer("efficientnetb4")
+
+    img_save_location = pathlib.Path(img_save_location)
+
+    overlay_save_location = img_save_location / "overlay"
+    heatmap_save_location = img_save_location / "heatmap"
+    overlay_save_location.mkdir(parents=True, exist_ok=True)
+    heatmap_save_location.mkdir(parents=True, exist_ok=True)
+
+    my_bar = st.progress(0, text="🖌️ Visualisation en cours...")
+    total = len(os.listdir(folder_path))
+    i = 0
+
+    folder_path = pathlib.Path(folder_path)
+    for radio_file in os.listdir(folder_path):
+        # load image
+        img_original_array = load_file(folder_path / radio_file, resize=False)
+        img = load_file(folder_path / radio_file)
+
+
+        if img_original_array.shape[2] != 1:
+            img_original_array = img_original_array[:, :, 0]
+        
+        img_original_array = np.array(img_original_array).reshape(img_original_array.shape[1], 
+                                                                  img_original_array.shape[2])
+        
+        # Make gradcam
+        heatmap = make_gradcam_heatmap(img, efficientnet, layer_name)
+
+        # Overlay the heatmap on the original image
+        overlay = overlay_heatmap_on_array(heatmap, img_original_array, alpha=0.4)
+
+        heatmap_PIL = convert_array_to_PIL(heatmap)
+        overlay_PIL = convert_array_to_PIL(overlay)
+        heatmap_PIL = heatmap_PIL.convert('RGB')
+        overlay_PIL = overlay_PIL.convert('RGB')
+
+        filepath = heatmap_save_location / f"heatmap_{radio_file}.jpeg"
+        heatmap_PIL.save(filepath.resolve())
+
+        filepath = overlay_save_location / f"overlay_{radio_file}.jpeg"
+        overlay_PIL.save(filepath.resolve())
+
+        i+=1
+        # Update que toute les 5 prédictions
+        if i % 5:
+            percent = round((i / total) * 100)
+            my_bar.progress(percent, text="🖌️ Visualisation en cours...")
+    
+    my_bar.progress(100, text="🖌️ Visualisation fini.")

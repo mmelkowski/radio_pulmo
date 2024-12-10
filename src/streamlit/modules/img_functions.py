@@ -47,3 +47,8 @@ def convert_PIL_to_io(img, img_format="PNG"):
     img.save(buf, format=img_format)
     byte_im = buf.getvalue()
     return byte_im
+
+
+def read_zip_file(file_path):
+    with open(file_path, "rb") as myfile:
+        return myfile.read()

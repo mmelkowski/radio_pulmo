@@ -252,15 +252,20 @@ def loading_dataset(data_dir, batch_size, seed=42):
         print("Invalid Input")
 
 
-def load_file(fpath, target_size=(224,224)):
+def load_file(fpath, target_size=(224,224), resize=True):
     """Function for loading a file as a generator for model prediciton
     """
     img = cv2.imread(fpath)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     # re-size for model
-    img = cv2.resize(img, dsize=target_size)
+    if resize:
+        img = cv2.resize(img, dsize=target_size)
+        final_size = target_size
+    else:
+        
+        final_size = (img.shape[0], img.shape[1])
 
-    img = np.array(img).reshape(1, target_size[0], target_size[1], 3)
+    img = np.array(img).reshape(1, final_size[0], final_size[1], 3)
     return img
 
 

@@ -1,33 +1,22 @@
 import streamlit as st
-import pathlib
-import sys
 import os
+import pathlib
 import shutil
 from io import BytesIO
 
-a ="""
-# To load our custom model functions
-path = pathlib.Path("../models").resolve()
-sys.path.insert(0, str(path))
-path = pathlib.Path("..").resolve()
-sys.path.insert(0, str(path))
-
-## clean for reloading scriptwithout spamming sys.path insert
-sys.path = list(dict.fromkeys(sys.path))
-"""
-from modules.data_functions import load_resize_img_from_buffer
-
 # import custom streamlit script
 from modules.nav import Navbar
-from modules.img_functions import convert_array_to_PIL, convert_PIL_to_io
+from modules.data_functions import load_resize_img_from_buffer
+from modules.img_functions import convert_array_to_PIL, convert_PIL_to_io, read_zip_file
 from modules.actions_functions import (
     action_prediction,
     action_visualization,
     action_masking,
     unzip_images,
     folder_action_prediction,
+    folder_action_masking,
+    folder_action_visualization
 )
-
 from modules.merge_model import merge_files
 
 
@@ -36,6 +25,7 @@ model_save_path = "models/EfficientNetB4_masked-Covid-19_masked-91.45.keras"
 seg_model_save_path = "models/cxr_reg_segmentation.best.keras"
 path_to_resources = pathlib.Path("src/streamlit/resources")
 
+# Due to file size limitation the model is stored as seperate files to be merged when the app is running
 if not pathlib.Path(model_save_path).exists():
     parts = [
         "models/EfficientNetB4_masked-Covid-19_masked-91.45.keras.part_0",
@@ -67,34 +57,25 @@ context_text = """
 <div style="text-align: justify;">
 
 Cette application permet la prédiction de l'état d'un patient à partir d'une radiographie pulmonaire pour les affections suivantes : Covid, pneumonie virale ou opacité pulmonaire.
-<br> Elle peut être utilisée à partir des exemples fournis ci-dessous ou en important vos propres images.
 </div>"""
+
+# <br> Elle peut être utilisée à partir des exemples fournis ci-dessous ou en important vos propres images.
 
 st.markdown(context_text, unsafe_allow_html=True, help=help_tooltip)
 
 text_1 = """
 <div style="text-align: justify;">
 La prédiction s'effectue sur des images brutes ou après isolation du poumon par masquage.
-<br>
 <br> Trois fonctionnalités sont disponibles :
-<li> la prédiction des affections
-<li> la génération de masque pour isoler les poumons
-<li> la visualisation les zones les plus informatives pour la prédiction <br>
-<br>
+
+- La prédiction des affections
+- La génération de masque pour isoler les poumons
+- La visualisation des zones les plus informatives pour la prédiction
+
+</div>
 """
 
 st.markdown(text_1, unsafe_allow_html=True)
-# text_1 = """
-# # <div style="text-align: justify;">
-# # La prédiction s'effectue sur des images brutes ou après isolation du poumon par masquage.
-# # <br> Trois fonctionnalités sont disponibles :
-# # _ la prédiction des affections 
-# # _ la génération de masque pour isoler les poumons
-# # _ la visualisation les zones les plus informatives pour la prédiction.
-# # <br>
-
-# # <br> 
-# # </div>"""
 
 # Répertoire contenant les fichiers d'exemple
 ex_dir =  path_to_resources / "ex_images"
@@ -102,21 +83,23 @@ ex_dir =  path_to_resources / "ex_images"
 # Liste des fichiers d'exemple dans le répertoire
 example_files = ["Aucun"] + [f.name for f in ex_dir.iterdir() if f.is_file() and f.suffix in ['.png', '.jpg', '.jpeg', '.zip']]
 
-# Sélectionner un fichier d'exemple via un selectbox
-selected_file = st.selectbox("Choisir un fichier d'exemple", example_files)
-
 context_text_2 = """
 <div style="text-align: justify;">
-<br>Le fichier à importer doit être une image au format "png", "jpg".
-<br> Il est possible de prédire un ensemble de fichiers avec un dossier au format "zip".
-<br> 
-</div>"""
-st.markdown(context_text_2, unsafe_allow_html=True)
 
+Le fichier à importer doit être une image au format "png", "jpg".
+<br> Il est possible de prédire un ensemble de fichiers avec un dossier au format "zip".
+<br>
+</div>
+"""
+
+st.markdown(context_text_2, unsafe_allow_html=True)
 
 uploaded_file = st.file_uploader(
     "Fichier ou dossier à prédire:", type=["png", "jpg", "jpeg", "zip", "x-zip-compressed"]
 )
+
+# Sélectionner un fichier d'exemple via un selectbox
+selected_file = st.selectbox("Sinon choisir un fichier d'exemple", example_files)
 
 if uploaded_file is not None:
     f_type = uploaded_file.type.split("/")[-1]
@@ -181,8 +164,10 @@ if uploaded_file is not None or selected_file != 'Aucun':
         elif action_required == "Visualiser":
             vis_text = """
             <div style="text-align: justify;">
+
             Pour la visualisation, l'image doit être masquée.
             <br> Vous pouvez visualiser les pixels les plus importantes au début, au milieu et à la fin de prédiction.
+
             </div>"""
             st.markdown(vis_text, unsafe_allow_html=True)
 
@@ -233,7 +218,8 @@ if uploaded_file is not None or selected_file != 'Aucun':
                 )
 
         elif action_required == "Masquer":
-            if st.button("Démarrer le masquage", icon="👺"):
+            left, middle, right = st.columns(3)
+            if middle.button("Démarrer le masquage", icon="👺"):
                 with st.status("Masquage en cours...", expanded=True):
                     mask, masked_img = action_masking(
                         seg_model_save_path, img_original_array
@@ -286,12 +272,88 @@ if uploaded_file is not None or selected_file != 'Aucun':
                 shutil.rmtree(zip_folder_tmp)
 
                 st.download_button(
-                    label="Download results as csv",
+                    label="Download results as csv 📝",
                     data=output,
                     file_name=f"prediction_results.csv",
                     mime="text/csv",
                 )
 
+        elif action_required == "Masquer":
+            left, middle, right = st.columns(3)
+            if middle.button("Démarrer le masquage", icon="👺"):
+                with st.status("Masquage en cours...", expanded=True):
+                    #unzipping images
+                    unzip_images(uploaded_file, extract_path=zip_folder_tmp_raw)
+
+                    # make process folder
+                    pathlib.Path(zip_folder_tmp_processed).mkdir(parents=True, exist_ok=True)
+
+                    folder_action_masking(
+                        seg_model_save_path, 
+                        zip_folder_tmp_raw,
+                        zip_folder_tmp_processed
+                    )
+
+                # zip zip_folder_tmp_raw
+                shutil.make_archive("masked_images", 'zip', root_dir=zip_folder_tmp_processed)
+
+                shutil.rmtree(zip_folder_tmp_processed)
+
+                st.success("Masquage effectué")
+
+                zip_data = read_zip_file("masked_images.zip")
+
+                left, middle, right = st.columns(3)
+                middle.download_button(
+                    label="Download masked images as zip 📦",
+                    data=zip_data,
+                    file_name="masked_images.zip",
+                    mime="application/zip",
+                )
+                os.remove("masked_images.zip")
+
+        elif action_required == "Visualiser":
+            vis_text = """
+            <div style="text-align: justify;">
+            Pour la visualisation, l'image doit être masquée.
+            <br> Vous pouvez visualiser les pixels les plus importantes au début, au milieu et à la fin de prédiction.
+            </div>"""
+            st.markdown(vis_text, unsafe_allow_html=True)
+
+            layer_name = st.selectbox(
+                "Choix de la couche à visualiser (Première : stem_conv, Intermédiaire : block4f_expand_conv, Finale : top_conv):",
+                ("stem_conv", "block4f_expand_conv", "top_conv"),
+                index=2
+            )
+
+            left, middle, right = st.columns(3)
+            if middle.button("Démarrer la visualisation", icon="🔍"):
+
+                with st.status("Visualisation en cours...", expanded=True):
+                    folder_action_visualization(
+                        model_save_path,
+                        layer_name,
+                        zip_folder_tmp_raw,
+                        zip_folder_tmp_processed
+                    )
+
+                st.success("Visualisation effectuée")
+
+                # zip zip_folder_tmp_raw
+                shutil.make_archive("images", 'zip', root_dir=zip_folder_tmp_processed)
+
+                shutil.rmtree(zip_folder_tmp_processed)
+
+                zip_data = read_zip_file("images.zip")
+
+                left, middle, right = st.columns(3)
+                middle.download_button(
+                    label="Download overlay images as zip 📦",
+                    data=zip_data,
+                    file_name="images.zip",
+                    mime="application/zip",
+                )
+                os.remove("images.zip")
 
     else:
         print("uploaded_file.type", uploaded_file.type)
