@@ -312,7 +312,7 @@ def folder_action_masking(
             percent = round((i / total) * 100)
             my_bar.progress(percent, text="✂️ Masquage cours...")
     
-    my_bar.progress(percent, text="✂️ Masquage fini.")
+    my_bar.progress(100, text="✂️ Masquage fini.")
 
 def folder_action_visualization(
     model_save_path,

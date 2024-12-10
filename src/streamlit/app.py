@@ -39,6 +39,9 @@ if not pathlib.Path(model_save_path).exists():
 zip_folder_tmp = pathlib.Path(".temp")
 zip_folder_tmp_raw = zip_folder_tmp / "raw"
 zip_folder_tmp_processed = zip_folder_tmp / "processed"
+zip_folder_tmp.mkdir(parents=True, exist_ok=True)
+zip_folder_tmp_raw.mkdir(parents=True, exist_ok=True)
+zip_folder_tmp_processed.mkdir(parents=True, exist_ok=True)
 
 # Streamlit app page
 st.set_page_config(page_title="Radio-Pulmo Prediction App")
@@ -331,6 +334,12 @@ if uploaded_file is not None or selected_file != 'Aucun':
             if middle.button("Démarrer la visualisation", icon="🔍"):
 
                 with st.status("Visualisation en cours...", expanded=True):
+                    #unzipping images
+                    unzip_images(uploaded_file, extract_path=zip_folder_tmp_raw)
+
+                    # make process folder
+                    pathlib.Path(zip_folder_tmp_processed).mkdir(parents=True, exist_ok=True)
+
                     folder_action_visualization(
                         model_save_path,
                         layer_name,
