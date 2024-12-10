@@ -9,6 +9,9 @@ from modules.nav import Navbar
 
 Navbar()
 
+#config:
+path_to_resources = pathlib.Path("src/streamlit/resources")
+
 st.title("Contexte du projet")
 
 
@@ -30,7 +33,7 @@ Un exemple d'image, de masque et de radiographie après masquage sont présenté
 
 st.markdown(context_text, unsafe_allow_html=True)
 
-st.image("resources/intro/mask_process.png")
+st.image("src/streamlit/resources/intro/mask_process.png")
 
 source_tooltip = """Les sources des images ont été recodées de la façon suivante:
 
@@ -65,7 +68,7 @@ st.markdown(count_text, unsafe_allow_html=True, help=source_tooltip)
 # Charger le dataset contenant uniquement label, source, moyenne et std par image
 #@st.cache_data
 def load_data():
-    df_mean_std_path = pathlib.Path("resources/decouverte_donnees/df_mean_std.pkl")
+    df_mean_std_path = path_to_resources / "decouverte_donnees" / "df_mean_std.pkl"
     df = pd.read_pickle(df_mean_std_path)
     return df
 

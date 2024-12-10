@@ -10,6 +10,9 @@ from modules.nav import Navbar
 
 Navbar()
 
+#config:
+path_to_resources = pathlib.Path("src/streamlit/resources")
+
 titre_text = """
 # Exploration des données:
 """
@@ -36,7 +39,7 @@ Le jeu de données préprocessé contient 21 165 images après masquage réparti
 st.markdown(text_3, unsafe_allow_html=True)
 
 # Ouvrir le dataframe
-df_small_path = pathlib.Path("resources/decouverte_donnees/df_small.pkl")
+df_small_path = path_to_resources / "decouverte_donnees" / "df_small.pkl"
 with open(df_small_path, "rb") as f:
     df_small = pickle.load(f)
 
@@ -104,7 +107,7 @@ st.markdown(text_6, unsafe_allow_html=True)
 # Charger le dataset contenant uniquement label et les statistiques basiques par image
 #@st.cache_data
 def load_data():
-    df_mean_std_path = pathlib.Path("resources/decouverte_donnees/df_mean_std.pkl")
+    df_mean_std_path = path_to_resources / "decouverte_donnees" / "df_mean_std.pkl"
     df = pd.read_pickle(df_mean_std_path)
     return df
 
@@ -214,7 +217,7 @@ if label == "Oui":
 
 
 # Ouvrir le dataframe des images moyennes.
-df_avg_img_path = pathlib.Path("resources/decouverte_donnees/df_avg_img.pkl")
+df_avg_img_path = path_to_resources / "decouverte_donnees" / "df_avg_img.pkl"
 with open(df_avg_img_path, "rb") as g:
     df_avg_img = pickle.load(g)
 

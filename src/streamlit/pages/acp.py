@@ -11,6 +11,9 @@ from modules.nav import Navbar
 
 Navbar()
 
+#config:
+path_to_resources = pathlib.Path("src/streamlit/resources")
+
 
 titre_text = """
 <div style="text-align: justify;">
@@ -43,7 +46,7 @@ st.markdown(text_1, unsafe_allow_html=True)
 # Charger les données
 @st.cache_data
 def load_data():
-    df_pca_var = pathlib.Path("resources/pca/pca_variance.pkl")
+    df_pca_var = path_to_resources / "pca" / "pca_variance.pkl"
     df = pd.read_pickle(df_pca_var)
     return df
 
@@ -114,7 +117,7 @@ st.markdown(text_10, unsafe_allow_html=True)
 # Charger le dataset contenant uniquement label, source, moyenne et std par image
 @st.cache_data
 def load_data():
-    df_pca_path = pathlib.Path("resources/pca/pca_df.pkl")
+    df_pca_path = path_to_resources / "pca" / "pca_df.pkl"
     df = pd.read_pickle(df_pca_path)
     return df
 
@@ -230,7 +233,7 @@ num_comp = st.slider(
     step=4,
 )
 # Charger le pickle contenant les composantes de l'acp
-pca_path = pathlib.Path("resources/pca/pca_components.pkl")
+pca_path = path_to_resources / "pca" / "pca_components.pkl"
 with open(pca_path, "rb") as g:
     pca_comp = pickle.load(g)
 

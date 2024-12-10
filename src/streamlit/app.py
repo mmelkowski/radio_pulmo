@@ -34,6 +34,7 @@ from modules.merge_model import merge_files
 # App config:
 model_save_path = "models/EfficientNetB4_masked-Covid-19_masked-91.45.keras"
 seg_model_save_path = "models/cxr_reg_segmentation.best.keras"
+path_to_resources = pathlib.Path("src/streamlit/resources")
 
 if not pathlib.Path(model_save_path).exists():
     parts = [
@@ -50,6 +51,7 @@ zip_folder_tmp_raw = zip_folder_tmp / "raw"
 zip_folder_tmp_processed = zip_folder_tmp / "processed"
 
 # Streamlit app page
+st.set_option("client.showSidebarNavigation", False)
 Navbar()
 
 st.title("Application de classification de Radiographie Pulmonaire")
@@ -95,7 +97,7 @@ st.markdown(text_1, unsafe_allow_html=True)
 # # </div>"""
 
 # Répertoire contenant les fichiers d'exemple
-ex_dir =  pathlib.Path("resources/ex_images")
+ex_dir =  path_to_resources / "ex_images"
 
 # Liste des fichiers d'exemple dans le répertoire
 example_files = ["Aucun"] + [f.name for f in ex_dir.iterdir() if f.is_file() and f.suffix in ['.png', '.jpg', '.jpeg', '.zip']]
@@ -123,7 +125,7 @@ if uploaded_file is not None:
 # Si un fichier d'exemple est sélectionné, on l'ouvre directement
 if selected_file:
     if selected_file != "Aucun" :
-        file_path =  pathlib.Path("resources/ex_images",selected_file)
+        file_path =  path_to_resources / "ex_images" / selected_file
         with open(file_path, "rb") as f:
             file_content = f.read()
         uploaded_file = BytesIO(file_content)
@@ -169,7 +171,7 @@ if uploaded_file is not None or selected_file != 'Aucun':
                         model_save_path,
                         img,
                         masked_value=masked_value,
-                        seg_model_save_path="../../models/cxr_reg_segmentation.best.keras",
+                        seg_model_save_path=seg_model_save_path,
                     )
 
                 st.success("Prédiction effectuée")

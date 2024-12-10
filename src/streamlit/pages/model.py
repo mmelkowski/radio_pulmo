@@ -7,6 +7,8 @@ from modules.nav import Navbar
 
 Navbar()
 
+#config:
+path_to_resources = pathlib.Path("src/streamlit/resources")
 
 header_text = """
 <div style="text-align: justify;">
@@ -34,13 +36,13 @@ Un modèle de deep-learning a été dévéloppé à partir de notre jeu de donn�
 </div>
 """
 st.markdown(header_text, unsafe_allow_html=True)
-adaptedENB4_path = pathlib.Path("resources/modelisation/Adapted_ENB4.png")
+adaptedENB4_path = path_to_resources / "modelisation" / "Adapted_ENB4.png"
 st.image(str(adaptedENB4_path))
 
 # Afficher le dataframe avec un bouton
 if st.button("Afficher le détail de l'architecture EfficientNetB4"):
     # Si le bouton est cliqué, afficher le jeu de données
-    detailsENB4_path = pathlib.Path("resources/modelisation/Details_EfficientNetB4.png")
+    detailsENB4_path = path_to_resources / "modelisation" / "Details_EfficientNetB4.png"
 
     textEN = """
     Le modèle EfficientNetB4 se décompose en sept grand blocs, composés de sous-blocs eux-même composé de modules.
@@ -64,12 +66,12 @@ text1 = """
 st.markdown(text1, unsafe_allow_html=True)
 
 # Afficher le graph d'évolution de la loss et de l'accuracy
-Loss_Accuracy_path = pathlib.Path("resources/modelisation/Loss_Accuracy.png")
+Loss_Accuracy_path = path_to_resources / "modelisation" / "Loss_Accuracy.png"
 st.image(str(Loss_Accuracy_path))
 
 
 # Afficher la matrice de confusion
-Confusion_path = pathlib.Path("resources/modelisation/Confusion_Matrix.png")
+Confusion_path = path_to_resources / "modelisation" / "Confusion_Matrix.png"
 st.image(str(Confusion_path))
 
 # Afficher le rapport de classification
@@ -111,7 +113,7 @@ text2 = """
 """
 
 st.markdown(text2, unsafe_allow_html=True)
-ex_pred_path = pathlib.Path("resources/modelisation/exemple_prediction.png")
+ex_pred_path = path_to_resources / "modelisation" / "exemple_prediction.png"
 st.image(str(ex_pred_path))
 
 text3 = """
@@ -133,7 +135,7 @@ text3 = """
 """
 
 st.markdown(text3, unsafe_allow_html=True)
-adaptedUNET_path = pathlib.Path("resources/modelisation/Adapted_UNET.png")
+adaptedUNET_path = path_to_resources / "modelisation" / "Adapted_UNET.png"
 st.image(str(adaptedUNET_path))
 
 text3 = """
@@ -148,7 +150,7 @@ text3 = """
 st.markdown(text3, unsafe_allow_html=True)
 
 # Si le bouton est cliqué, afficher le jeu de données
-Loss_Accuracy_UNET_path = pathlib.Path("resources/modelisation/Loss_Accuracy_UNET.png")
+Loss_Accuracy_UNET_path = path_to_resources / "modelisation" / "Loss_Accuracy_UNET.png"
 st.image(str(Loss_Accuracy_UNET_path))
 
 
