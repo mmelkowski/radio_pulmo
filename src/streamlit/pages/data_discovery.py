@@ -323,19 +323,3 @@ On émet l’hypothèse que les données associés à la pneumonie sont des radi
 Un biais risque donc d'être présent dans la modélisation de la catégorie Viral Pneumonia.
 """
 st.markdown(text_9, unsafe_allow_html=True)
-
-
-# Crédit
-bottom_text = """
-<div style="font-size: 14px; color: gray; font-style: italic; text-align: center; margin-top: 20px;">
- Cette application a été développée par 
-    <br>
-    <a href="https://www.linkedin.com/in/chris-hozé-007901a5" target="_blank" style="color: #0073e6;">Chris Hozé</a> 
-    et 
-    <a href="https://www.linkedin.com/in/mickael-melkowski/" target="_blank" style="color: #0073e6;">Mickaël Melkowski</a>.
-
-</div>
-"""
-
-# Affichage du texte dans la sidebar
-st.sidebar.markdown(bottom_text, unsafe_allow_html=True)

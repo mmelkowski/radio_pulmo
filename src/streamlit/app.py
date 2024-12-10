@@ -296,29 +296,3 @@ if uploaded_file is not None or selected_file != 'Aucun':
     else:
         print("uploaded_file.type", uploaded_file.type)
         raise TypeError("Wrong file type submitted (not 'png', 'jpg', 'jpeg' or 'zip')")
-
-# bottom_text = """
-# <div style="font-size: 12px; color: gray; font-style: italic; position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); margin: 0;">
-
-# Cette application a été développée par [Chris Hozé](https://www.linkedin.com/in/chris-hozé-007901a5) et [Mickaël Melkowski](https://www.linkedin.com/in/mickael-melkowski/).
-# </div>
-# """
-# st.markdown(bottom_text, unsafe_allow_html=True)
-
-# Crédit
-side_text = """
-<div style="font-size: 14px; color: gray; font-style: italic; text-align: center; margin-top: 20px;">
- Cette application a été développée par 
-    <br>
-    <a href="https://www.linkedin.com/in/chris-hozé-007901a5" target="_blank" style="color: #0073e6;">Chris Hozé</a> 
-    et 
-    <a href="https://www.linkedin.com/in/mickael-melkowski/" target="_blank" style="color: #0073e6;">Mickaël Melkowski</a>
-     <br> dans le cadre de notre formation en DataScience réalisée avec DataScientest.
-     <br>
-     <br>L'ensemble des scripts et modèles sont disponibles sur le dépot 
-     <a href="https://github.com/mmelkowski/radio_pulmo/" target="_blank" style="color: #0073e6;">github</a> du projet.
-</div>
-"""
-
-# Affichage du texte dans la sidebar
-st.sidebar.markdown(side_text, unsafe_allow_html=True)

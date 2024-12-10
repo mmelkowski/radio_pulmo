@@ -111,19 +111,3 @@ else:  # 'Label & Source'
 
 # Afficher le countplot dans Streamlit
 st.plotly_chart(fig)
-
-
-# Crédit
-bottom_text = """
-<div style="font-size: 14px; color: gray; font-style: italic; text-align: center; margin-top: 20px;">
- Cette application a été développée par 
-    <br>
-    <a href="https://www.linkedin.com/in/chris-hozé-007901a5" target="_blank" style="color: #0073e6;">Chris Hozé</a> 
-    et 
-    <a href="https://www.linkedin.com/in/mickael-melkowski/" target="_blank" style="color: #0073e6;">Mickaël Melkowski</a>.
-
-</div>
-"""
-
-# Affichage du texte dans la sidebar
-st.sidebar.markdown(bottom_text, unsafe_allow_html=True)
