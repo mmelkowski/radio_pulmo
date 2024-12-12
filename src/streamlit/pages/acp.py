@@ -9,12 +9,12 @@ import pathlib
 # import custom Navigation bar
 from modules.nav import Navbar
 
-Navbar()
 
 #config:
 st.set_page_config(page_title="Radio-Pulmo ACP", page_icon="resources/x-ray.ico")
 path_to_resources = pathlib.Path("src/streamlit/resources")
 
+Navbar()
 
 titre_text = """
 <div style="text-align: justify;">
