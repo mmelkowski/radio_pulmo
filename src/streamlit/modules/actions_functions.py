@@ -8,20 +8,20 @@ import pandas as pd
 from PIL import Image
 from modules.img_functions import convert_array_to_PIL
 
-from modules.model_functions import load_model, keras_predict_model, get_predict_value
+from modules.model_functions import keras_predict_model, get_predict_value
 from modules.seg_predict_model import scale_image, mask_generation, apply_mask
 from modules.plot_functions import make_gradcam_heatmap, overlay_heatmap_on_array
 from modules.data_functions import load_file
 
 
-def action_visualization(model_save_path, img, img_original_array, layer_name):
+def action_visualization(model, img, img_original_array, layer_name):
     """Visualizes the model's decision-making process using Grad-CAM.
 
     This function loads a pre-trained model, generates a Grad-CAM heatmap for a given input image,
     and overlays the heatmap on the original image.
 
     Args:
-        model_save_path: Path to the saved model.
+        model: Prediction model.
         img: The input image as a NumPy array.
         img_original_array: The original image as a NumPy array.
         layer_name: The name of the layer in the model for which to generate Grad-CAM.
@@ -32,8 +32,8 @@ def action_visualization(model_save_path, img, img_original_array, layer_name):
         - The original image with the overlaid heatmap as a NumPy array.
     """
     # Load model
-    st.write("⏳ Chargement du model de prédiction...")
-    model = load_model(model_save_path)
+    #st.write("⏳ Chargement du model de prédiction...")
+    #model = load_model(model_save_path)
     efficientnet = model.get_layer("efficientnetb4")
 
     st.write("🖌️ Création de l'overlay...")
@@ -46,14 +46,14 @@ def action_visualization(model_save_path, img, img_original_array, layer_name):
     return heatmap, overlay
 
 
-def action_masking(seg_model_save_path, img_original_array):
+def action_masking(seg_model, img_original_array):
     """Applies a segmentation mask to an image.
 
     This function loads a segmentation model, resizes the input image, generates a segmentation
     mask, and applies the mask to the original image.
 
     Args:
-        seg_model_save_path: Path to the saved segmentation model.
+        seg_model: Segmentation model.
         img_original_array: The original image as a NumPy array.
 
     Returns:
@@ -62,8 +62,8 @@ def action_masking(seg_model_save_path, img_original_array):
         - The masked image as a NumPy array.
     """
     # load model
-    st.write("⏳ Chargement du model de masquage...")
-    model_seg = load_model(seg_model_save_path)
+    #st.write("⏳ Chargement du model de masquage...")
+    #model_seg = load_model(seg_model_save_path)
 
     # masking
     st.write("✏️ Calcul du Masque...")
@@ -71,7 +71,7 @@ def action_masking(seg_model_save_path, img_original_array):
     img_to_mask = cv2.resize(img_original_array, dsize=(256, 256))
     img_to_mask = scale_image(img_to_mask)
     img_to_mask = np.array(img_to_mask).reshape(1, 256, 256, 1)
-    mask = mask_generation(model_seg, img_to_mask)
+    mask = mask_generation(seg_model, img_to_mask)
     mask = np.array(mask).reshape(256, 256)
 
     st.write("✂️ Masquage...")
@@ -87,10 +87,10 @@ def action_masking(seg_model_save_path, img_original_array):
 
 
 def action_prediction(
-    model_save_path,
+    model,
     img,
     masked_value=False,
-    seg_model_save_path="../../../models/cxr_reg_segmentation.best.keras",
+    seg_model="",
 ):
     """Performs prediction on an image using a loaded model.
 
@@ -109,14 +109,13 @@ def action_prediction(
     5. Interprets the prediction and returns the interpreted value.
 
     Args:
-        model_save_path: Path to the saved prediction model.
+        model: Prediction model.
         img: The image data as a NumPy array.
         masked_value: Boolean indicating if the image is already masked (default: False).
-        seg_model_save_path: Path to the segmentation model used for masking (default).
+        seg_model: Segmentation model used for masking.
 
     Returns:
-        The interpreted prediction value. The data type of the return value depends on
-        the specific implementation of `get_predict_value`.
+        The interpreted prediction value.
     """
     if not masked_value:
         st.write("👺 Masquage à faire...")
@@ -124,7 +123,7 @@ def action_prediction(
         img = np.array(img).reshape(img.shape[1], img.shape[2], img.shape[3])
         if img.shape[2] != 1:
             img = img[:, :, 0]
-        mask, masked_img = action_masking(seg_model_save_path, img)
+        mask, masked_img = action_masking(seg_model, img)
 
         # re-size masked_img to prediction model target size
         masked_img = cv2.resize(masked_img, dsize=(224, 224))
@@ -132,9 +131,9 @@ def action_prediction(
         masked_img = np.repeat(masked_img[:, :, :], masked_img.shape[0], axis=3)
         img = masked_img
 
-    st.write("⏳ Chargement du model de prediction...")
+    #st.write("⏳ Chargement du model de prediction...")
     # load model
-    model = load_model(model_save_path)
+    #model = load_model(model_save_path)
 
     # make predict
     st.write("🤔 Prédiction...")
@@ -148,18 +147,40 @@ def action_prediction(
 
 
 def unzip_images(file_uploaded, extract_path="temp"):
+    """Unzips a ZIP file containing images.
+
+    This function extracts the contents of a ZIP file to a specified directory. It's
+    particularly useful for handling uploaded ZIP files containing images.
+
+    Args:
+        file_uploaded: The uploaded ZIP file object.
+        extract_path: The path to the directory where the extracted files will be saved.
+            Defaults to "temp".
+    """
     pathlib.Path(extract_path).mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(file_uploaded,"r") as z:
         z.extractall(extract_path)
 
 
 def folder_action_prediction(
-    model_save_path,
+    model,
     folder_path,
     masked_value=False,
-    seg_model_save_path="../../models/cxr_reg_segmentation.best.keras",
+    seg_model="",
 ):
-    
+    """Performs prediction on a folder of images using a loaded model.
+
+    Args:
+        model: Prediction model.
+        folder_path: The folder path.
+        masked_value: Boolean indicating if the image is already masked (default: False).
+        seg_model: Path to the segmentation model used for masking (default).
+
+    Returns:
+        A tuple containing:
+            - The dataframe containing the prediciton results.
+            - The dataframe as a csv file for saving.
+    """
     columns = ["filename",
                "Prediction_results",
                "pred_COVID",
@@ -172,11 +193,11 @@ def folder_action_prediction(
     #seg_model_save_path = pathlib.Path(seg_model_save_path)
     folder_path = pathlib.Path(folder_path)
 
-    st.write("⏳ Chargement du modèle de prédiction...")
-    model = load_model(model_save_path)
-    if not masked_value:
-        st.write("⏳ Chargement du modèle de segmentation...")
-        model_seg = load_model(seg_model_save_path)
+    #st.write("⏳ Chargement du modèle de prédiction...")
+    #model = load_model(model_save_path)
+    #if not masked_value:
+    #    st.write("⏳ Chargement du modèle de segmentation...")
+    #    model_seg = load_model(seg_model)
 
     my_bar = st.progress(0, text="🤔 Prédiction en cours...")
 
@@ -196,7 +217,7 @@ def folder_action_prediction(
             img_to_mask = cv2.resize(img_to_mask, dsize=(256, 256))
             img_to_mask = scale_image(img_to_mask)
             img_to_mask = np.array(img_to_mask).reshape(1, 256, 256, 1)
-            mask = mask_generation(model_seg, img_to_mask)
+            mask = mask_generation(seg_model, img_to_mask)
             mask = np.array(mask).reshape(256, 256)
 
             masked_img = apply_mask(
@@ -236,28 +257,23 @@ def folder_action_prediction(
 
 
 def folder_action_masking(
-    seg_model_save_path, 
+    seg_model, 
     folder_path,
     img_save_location                      
     ):
-    """Applies a segmentation mask to an image.
+    """Applies segmentation masks to all images in a folder.
 
-    This function loads a segmentation model, resizes the input image, generates a segmentation
-    mask, and applies the mask to the original image.
+    This function iterates over all image files in a given folder, performs segmentation
+    using the provided segmentation model (`seg_model`), and saves the generated masks and
+    masked images to separate subdirectories within the specified save location. It uses a
+    progress bar to track the processing progress.
 
     Args:
-        seg_model_save_path: Path to the saved segmentation model.
-        img_original_array: The original image as a NumPy array.
-
-    Returns:
-        A tuple containing:
-        - The generated mask as a NumPy array.
-        - The masked image as a NumPy array.
+        seg_model: The trained segmentation model to use for masking.
+        folder_path: Path to the folder containing the images to be masked.
+        img_save_location: Path to the directory where the masked images and masks will be saved.
+            Subdirectories for masks and masked images will be created within this directory.
     """
-    # load model
-    st.write("⏳ Chargement du model de masquage...")
-    model_seg = load_model(seg_model_save_path)
-
     img_save_location = pathlib.Path(img_save_location)
 
     masked_img_save_location = img_save_location / "masked_image"
@@ -284,7 +300,7 @@ def folder_action_masking(
         img_to_mask = cv2.resize(img_to_mask, dsize=(256, 256))
         img_to_mask = np.array(img_to_mask).reshape(1, 256, 256, 1)
 
-        mask = mask_generation(model_seg, img_to_mask)
+        mask = mask_generation(seg_model, img_to_mask)
 
         mask = np.array(mask).reshape(256, 256)
 
@@ -315,28 +331,28 @@ def folder_action_masking(
     my_bar.progress(100, text="✂️ Masquage fini.")
 
 def folder_action_visualization(
-    model_save_path,
+    model,
     layer_name,
     folder_path,
     img_save_location                   
     ):
-    """Applies a segmentation mask to an image.
+    """Visualizes the model's decision-making process for images in a folder using Grad-CAM.
 
-    This function loads a segmentation model, resizes the input image, generates a segmentation
-    mask, and applies the mask to the original image.
+    This function iterates over all image files in a given folder, performs Grad-CAM
+    visualization using the provided model (`model`) and layer name (`layer_name`),
+    and saves the generated heatmaps and overlaid images to separate subdirectories
+    within the specified save location. It uses a progress bar to track the processing
+    progress.
 
     Args:
-        seg_model_save_path: Path to the saved segmentation model.
-        img_original_array: The original image as a NumPy array.
-
-    Returns:
-        A tuple containing:
-        - The generated mask as a NumPy array.
-        - The masked image as a NumPy array.
+        model: The trained model to use for visualization.
+        layer_name: Name of the layer in the model for which to generate Grad-CAM.
+        folder_path: Path to the folder containing the images to be visualized.
+        img_save_location: Path to the directory where the heatmaps and overlaid images
+        will be saved. Subdirectories for heatmaps and overlays will be created within
+        this directory.
     """
-    # load model
-    st.write("⏳ Chargement du model de prédiction...")
-    model = load_model(model_save_path)
+    # Select EfficientNet from the custom model
     efficientnet = model.get_layer("efficientnetb4")
 
     img_save_location = pathlib.Path(img_save_location)
@@ -355,7 +371,6 @@ def folder_action_visualization(
         # load image
         img_original_array = load_file(folder_path / radio_file, resize=False)
         img = load_file(folder_path / radio_file)
-
 
         if img_original_array.shape[2] != 1:
             img_original_array = img_original_array[:, :, 0]

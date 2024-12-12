@@ -18,7 +18,21 @@ from modules.actions_functions import (
     folder_action_visualization
 )
 from modules.merge_model import merge_files
+from modules.model_functions import load_model
 
+
+@st.cache_resource(show_spinner="⏳ Chargement des modèles de Deep Learning...")
+def load_and_cache_model(model_path):
+    """Wrapper function to cache the loaded model
+
+    Args:
+        model_path: Path to the keras model saved
+    """
+    return load_model(model_path)
+
+# page settings
+st.set_option("client.showSidebarNavigation", False)
+st.set_page_config(page_title="Radio-Pulmo Prediction App", page_icon="resources/x-ray.ico")
 
 # App config:
 model_save_path = "models/EfficientNetB4_masked-Covid-19_masked-91.45.keras"
@@ -44,8 +58,6 @@ zip_folder_tmp_raw.mkdir(parents=True, exist_ok=True)
 zip_folder_tmp_processed.mkdir(parents=True, exist_ok=True)
 
 # Streamlit app page
-st.set_page_config(page_title="Radio-Pulmo Prediction App")
-st.set_option("client.showSidebarNavigation", False)
 Navbar()
 
 st.title("Application de classification de Radiographie Pulmonaire")
@@ -98,6 +110,12 @@ Le fichier à importer doit être une image au format "png", "jpg".
 
 st.markdown(context_text_2, unsafe_allow_html=True)
 
+#########################
+# load model before action selection but after first text element to let the user wait
+model = load_and_cache_model(model_save_path)
+seg_model = load_and_cache_model(seg_model_save_path)
+#########################
+
 uploaded_file = st.file_uploader(
     "Fichier ou dossier à prédire:", type=["png", "jpg", "jpeg", "zip", "x-zip-compressed"]
 )
@@ -120,11 +138,7 @@ if selected_file:
         filename = selected_file
 
 if uploaded_file is not None or selected_file != 'Aucun':
-    # ne fonctionne plus avec fichier exemple on le passe au dessus
-    #f_type = uploaded_file.type.split("/")[-1]
     if f_type in ["png", "jpg", "jpeg"] :
-
-        # si png, jpg
 
         img_original_array, img = load_resize_img_from_buffer(
             uploaded_file, target_size=(224, 224)
@@ -155,10 +169,10 @@ if uploaded_file is not None or selected_file != 'Aucun':
             if middle.button("Démarrer la prédiction", icon="🚀"):
                 with st.status("Prédiction en cours...", expanded=True):
                     pred = action_prediction(
-                        model_save_path,
+                        model,
                         img,
                         masked_value=masked_value,
-                        seg_model_save_path=seg_model_save_path,
+                        seg_model=seg_model,
                     )
 
                 st.success("Prédiction effectuée")
@@ -186,7 +200,7 @@ if uploaded_file is not None or selected_file != 'Aucun':
 
                 with st.status("Visualisation en cours...", expanded=True):
                     heatmap, overlay = action_visualization(
-                        model_save_path, img, img_original_array, layer_name
+                        model, img, img_original_array, layer_name
                     )
 
                 st.success("Visualisation effectuée")
@@ -209,13 +223,13 @@ if uploaded_file is not None or selected_file != 'Aucun':
 
                 # Download
                 left_d.download_button(
-                    label="Download Grad-CAM",
+                    label="Telecharger l'image Grad-CAM",
                     data=io_overlay,
                     file_name=f"Grad_CAM_{filename}.png",
                     mime="image/png",
                 )
                 right_d.download_button(
-                    label="Download heatmap",
+                    label="Telecharger la Heatmap",
                     data=io_heatmap,
                     file_name=f"Heatmap_{filename}.png",
                     mime="image/png",
@@ -262,10 +276,10 @@ if uploaded_file is not None or selected_file != 'Aucun':
                     pathlib.Path(zip_folder_tmp_processed).mkdir(parents=True, exist_ok=True)
 
                     df, output = folder_action_prediction(
-                        model_save_path,
+                        model,
                         zip_folder_tmp_raw,
                         masked_value=masked_value == "Oui",
-                        seg_model_save_path=seg_model_save_path,
+                        seg_model=seg_model,
                     )
                 
                 st.success("Prédictions effectuées")
@@ -276,11 +290,14 @@ if uploaded_file is not None or selected_file != 'Aucun':
                 shutil.rmtree(zip_folder_tmp)
 
                 st.download_button(
-                    label="Download results as csv 📝",
+                    label="Télécharger les résultats en csv 📝",
                     data=output,
                     file_name=f"prediction_results.csv",
                     mime="text/csv",
                 )
+
+                del df
+                del output
 
         elif action_required == "Masquer":
             left, middle, right = st.columns(3)
@@ -293,7 +310,7 @@ if uploaded_file is not None or selected_file != 'Aucun':
                     pathlib.Path(zip_folder_tmp_processed).mkdir(parents=True, exist_ok=True)
 
                     folder_action_masking(
-                        seg_model_save_path, 
+                        seg_model, 
                         zip_folder_tmp_raw,
                         zip_folder_tmp_processed
                     )
@@ -309,12 +326,14 @@ if uploaded_file is not None or selected_file != 'Aucun':
 
                 left, middle, right = st.columns(3)
                 middle.download_button(
-                    label="Download masked images as zip 📦",
+                    label="Télécharger les images masquées au format '.zip' 📦",
                     data=zip_data,
                     file_name="masked_images.zip",
                     mime="application/zip",
                 )
                 os.remove("masked_images.zip")
+                del zip_data
+
 
         elif action_required == "Visualiser":
             vis_text = """
@@ -341,7 +360,7 @@ if uploaded_file is not None or selected_file != 'Aucun':
                     pathlib.Path(zip_folder_tmp_processed).mkdir(parents=True, exist_ok=True)
 
                     folder_action_visualization(
-                        model_save_path,
+                        model,
                         layer_name,
                         zip_folder_tmp_raw,
                         zip_folder_tmp_processed
@@ -358,12 +377,13 @@ if uploaded_file is not None or selected_file != 'Aucun':
 
                 left, middle, right = st.columns(3)
                 middle.download_button(
-                    label="Download overlay images as zip 📦",
+                    label="Télécharger les visualisations au format '.zip' 📦",
                     data=zip_data,
                     file_name="images.zip",
                     mime="application/zip",
                 )
                 os.remove("images.zip")
+                del zip_data
 
     else:
         print("uploaded_file.type", uploaded_file.type)
