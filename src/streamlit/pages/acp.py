@@ -232,10 +232,18 @@ num_comp = st.slider(
     value=4,  # Valeur par défaut
     step=4,
 )
+
+# Definir une fonction de lecture du pickle
+@st.cache_data
+def load_pkl(path):
+    with open(path, "rb") as g:
+        df = pickle.load(g)
+    return df
+
+
 # Charger le pickle contenant les composantes de l'acp
 pca_path = path_to_resources / "pca" / "pca_components.pkl"
-with open(pca_path, "rb") as g:
-    pca_comp = pickle.load(g)
+pca_comp = load_pkl(pca_path)
 
 # Calculer le nombre de colonnes et de lignes nécessaires 
 num_columns = 4

@@ -38,11 +38,17 @@ Le jeu de données préprocessé contient 21 165 images après masquage réparti
 """
 st.markdown(text_3, unsafe_allow_html=True)
 
-# Ouvrir le dataframe
-df_small_path = path_to_resources / "decouverte_donnees" / "df_small.pkl"
-with open(df_small_path, "rb") as f:
-    df_small = pickle.load(f)
+# Definir une fonction de lecture du pickle
+@st.cache_data
+def load_pkl(path):
+    with open(path, "rb") as g:
+        df = pickle.load(g)
+    return df
 
+
+# Ouvrir le dataframe reduit
+df_small_path = path_to_resources / "decouverte_donnees" / "df_small.pkl"
+df_small = load_pkl(df_small_path) 
 
 #### Sélection de 2 images par type
 sampled_images = (
@@ -103,9 +109,8 @@ Le tableau et les boites de dispersion suivantes résument les différences obse
 
 st.markdown(text_6, unsafe_allow_html=True)
 
-
 # Charger le dataset contenant uniquement label et les statistiques basiques par image
-#@st.cache_data
+@st.cache_data
 def load_data():
     df_mean_std_path = path_to_resources / "decouverte_donnees" / "df_mean_std.pkl"
     df = pd.read_pickle(df_mean_std_path)
@@ -174,7 +179,6 @@ Une autre possibilité de visualisation est de tracer le nuage de point de la va
 """
 st.markdown(text_7, unsafe_allow_html=True)
 
-
 # Créer le graphique avec Plotly Express
 def create_plot():
     label_choice = ["Toutes les catégories"] + df_mean_std["label"].unique().tolist()
@@ -218,9 +222,9 @@ if label == "Oui":
 
 # Ouvrir le dataframe des images moyennes.
 df_avg_img_path = path_to_resources / "decouverte_donnees" / "df_avg_img.pkl"
-with open(df_avg_img_path, "rb") as g:
-    df_avg_img = pickle.load(g)
 
+# Exemple d'utilisation dans Streamlit
+df_avg_img = load_pkl(df_avg_img_path)
 
 def afficher_pixels_par_categorie(df):
 
@@ -266,13 +270,12 @@ def afficher_pixels_par_categorie(df):
 
 # Afficher le dataframe avec un bouton
 label_mean = st.selectbox(
-    "Afficher le graphique de l'écart-type de la valeur moyenne des pixels pour une catégorie x source ?",
+    "Afficher le graphique de la valeur moyenne en fonction de l'index des pixels pour une catégorie x source ?",
     options=["Non"] + ["Oui"],
     index=0,
 )  # "Aucune sélection" sera la première option
 if label_mean == "Oui":
     afficher_pixels_par_categorie(df_avg_img)
-
 
 text_8 = """
 <div style="text-align: justify;">
@@ -287,7 +290,6 @@ Pour aller plus loin, on peut tracer l’image moyenne par groupe en fonction de
 </div>
 """
 st.markdown(text_8, unsafe_allow_html=True)
-
 
 cols2 = st.columns(5)
 
@@ -308,8 +310,7 @@ for i, (index, row) in enumerate(df_avg_img.iterrows()):
     # Pour résoudre le problème d'alignement on diminue la longueur
     short_caption = row["label_source"][:17]
     cols2[col_index].image(img, caption=f"{short_caption}")
-    # cols2[col_index].image(img, caption=f'{[row["label_source"]]}')
-
+    
 text_9 = """
 <div style="text-align: justify;">
 

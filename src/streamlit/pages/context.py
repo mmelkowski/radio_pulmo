@@ -17,7 +17,10 @@ st.title("Contexte du projet")
 
 context_text = """
 <div style="text-align: justify;">
-L'objectif de notre étude est de développer un modèle pour classifier les radiographies pulmonaires.
+La COVID19 est un virus qui a émergé en 2019 et affecte principalement les poumons.
+Au démarrage de la pandémie, les outils de diagnostics étaient basés sur de la RT-PCR (recherche d'ADN viral) et des radiographies pulmonaires.
+Les radiographies pulmonaires sont plus aisées à mettre en oeuvre mais nécessite l'expertise d'un radiologue pour être interprêter.
+<br> L'objectif de notre étude est de développer un modèle pour classifier les radiographies pulmonaires et ainsi faciliter le diagnostic.
 
 ## Jeu de données :
 
@@ -66,7 +69,7 @@ st.markdown(count_text, unsafe_allow_html=True, help=source_tooltip)
 
 
 # Charger le dataset contenant uniquement label, source, moyenne et std par image
-#@st.cache_data
+@st.cache_data
 def load_data():
     df_mean_std_path = path_to_resources / "decouverte_donnees" / "df_mean_std.pkl"
     df = pd.read_pickle(df_mean_std_path)
