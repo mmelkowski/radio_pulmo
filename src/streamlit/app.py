@@ -31,7 +31,6 @@ def load_and_cache_model(model_path):
     return load_model(model_path)
 
 # page settings
-st.set_option("client.showSidebarNavigation", False)
 st.set_page_config(page_title="Radio-Pulmo Prediction App", page_icon="src/streamlit/resources/x-ray.ico")
 
 # App config:

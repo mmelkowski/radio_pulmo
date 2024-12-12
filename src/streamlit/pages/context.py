@@ -12,7 +12,6 @@ from modules.nav import Navbar
 st.set_page_config(page_title="Radio-Pulmo Contexte", page_icon="src/streamlit/resources/x-ray.ico")
 path_to_resources = pathlib.Path("src/streamlit/resources")
 
-
 Navbar()
 
 st.title("Contexte du projet")
