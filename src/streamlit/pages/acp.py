@@ -11,7 +11,7 @@ from modules.nav import Navbar
 
 
 #config:
-st.set_page_config(page_title="Radio-Pulmo ACP", page_icon="resources/x-ray.ico")
+st.set_page_config(page_title="Radio-Pulmo ACP", page_icon="src/streamlit/resources/x-ray.ico")
 path_to_resources = pathlib.Path("src/streamlit/resources")
 
 Navbar()

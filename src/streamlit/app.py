@@ -32,7 +32,7 @@ def load_and_cache_model(model_path):
 
 # page settings
 st.set_option("client.showSidebarNavigation", False)
-st.set_page_config(page_title="Radio-Pulmo Prediction App", page_icon="resources/x-ray.ico")
+st.set_page_config(page_title="Radio-Pulmo Prediction App", page_icon="src/streamlit/resources/x-ray.ico")
 
 # App config:
 model_save_path = "models/EfficientNetB4_masked-Covid-19_masked-91.45.keras"
